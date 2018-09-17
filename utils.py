@@ -1,8 +1,8 @@
-import torch
 
-def get_grad_norm(parameters, norm_type = 2):
+
+def get_grad_norm(parameters, norm_type=2):
     parameters = list(filter(lambda p: p.grad is not None, parameters))
-    
+
     total_norm = 0
 
     try:
@@ -15,7 +15,8 @@ def get_grad_norm(parameters, norm_type = 2):
 
     return total_norm
 
-def get_parameter_norm(parameters, norm_type = 2):
+
+def get_parameter_norm(parameters, norm_type=2):
     total_norm = 0
 
     try:
