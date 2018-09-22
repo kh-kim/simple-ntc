@@ -8,7 +8,7 @@ class RNNClassifier(nn.Module):
                  input_size, 
                  word_vec_dim, 
                  hidden_size, 
-                 n_classes, 
+                 n_classes,
                  n_layers=4, 
                  dropout_p=.2
                  ):

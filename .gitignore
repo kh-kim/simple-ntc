@@ -1,4 +1,7 @@
 .vscode
 *.pyc
-./data
-./data/*
+/data
+/data/*
+.DS_Store
+._.DS_Store
+/models

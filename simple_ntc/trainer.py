@@ -23,9 +23,6 @@ class Trainer():
 
         return self.model
 
-    def load_model(self, fn):
-        self.best = torch.load(fn)
-
     def get_loss(self, y_hat, y, crit=None):
         crit = self.crit if crit is None else crit
         loss = crit(y_hat, y)
@@ -40,11 +37,12 @@ class Trainer():
                     ):
         total_loss, total_param_norm, total_grad_norm = 0, 0, 0
         avg_loss, avg_param_norm, avg_grad_norm = 0, 0, 0
+        sample_cnt = 0
 
         progress_bar = tqdm(train, 
                             desc='Training: ', 
                             unit='batch'
-                            ) if verbose is VERBOSE_BATCH_WISE else enumerate(train)
+                            ) if verbose is VERBOSE_BATCH_WISE else train
         for idx, mini_batch in enumerate(progress_bar):
             x, y = mini_batch.text, mini_batch.label
             optimizer.zero_grad()
@@ -69,6 +67,10 @@ class Trainer():
                                                                                         ))
 
             optimizer.step()
+
+            sample_cnt += mini_batch.text.size(0)
+            if sample_cnt >= len(train.dataset.examples):
+                break
 
         if verbose is VERBOSE_BATCH_WISE:
             progress_bar.close()
@@ -103,9 +105,9 @@ class Trainer():
                                                                              batch_size=batch_size, 
                                                                              verbose=verbose
                                                                              )
-            _, avg_valid_loss = self.predict(valid, 
-                                             verbose=verbose
-                                             )
+            _, avg_valid_loss = self.validate(valid, 
+                                              verbose=verbose
+                                              )
 
             if verbose is VERBOSE_EPOCH_WISE:
                 progress_bar.set_postfix_str('|param|=%.2f |g_param|=%.2f train_loss=%.4e valid_loss=%.4e min_valid_loss=%.4e' % (float(avg_param_norm),
@@ -132,19 +134,18 @@ class Trainer():
         if verbose is VERBOSE_EPOCH_WISE:
             progress_bar.close()
 
-    def predict(self, 
-                valid, 
-                crit=None, 
-                batch_size=256, 
-                return_numpy=True, 
-                verbose=VERBOSE_SILENT
-                ):
+    def validate(self, 
+                 valid, 
+                 crit=None, 
+                 batch_size=256, 
+                 verbose=VERBOSE_SILENT
+                 ):
         with torch.no_grad():
-            total_loss = 0
+            total_loss, total_correct, sample_cnt = 0, 0, 0
             progress_bar = tqdm(valid, 
                                 desc='Validation: ', 
                                 unit='batch'
-                                ) if verbose is VERBOSE_BATCH_WISE else enumerate(valid)
+                                ) if verbose is VERBOSE_BATCH_WISE else valid
 
             y_hats = []
             self.model.eval()
@@ -155,18 +156,22 @@ class Trainer():
                 loss = self.get_loss(y_hat, y, crit)
 
                 total_loss += loss
+                sample_cnt += mini_batch.text.size(0)
+                total_correct += float(y_hat.topk(1)[1].view(-1).eq(y).sum())
+
                 avg_loss = total_loss / (idx + 1)
                 y_hats += [y_hat]
 
                 if verbose is VERBOSE_BATCH_WISE:
-                    progress_bar.set_postfix_str('valid_loss=%.4e' % avg_loss)
+                    progress_bar.set_postfix_str('valid_loss=%.4e accuarcy=%.4f' % (avg_loss, total_correct / sample_cnt))
+
+                if sample_cnt >= len(valid.dataset.examples):
+                    break
             self.model.train()
 
             if verbose is VERBOSE_BATCH_WISE:
                 progress_bar.close()
 
             y_hats = torch.cat(y_hats, dim=0)
-            if return_numpy:
-                y_hats = y_hats.numpy()
 
             return y_hats, avg_loss

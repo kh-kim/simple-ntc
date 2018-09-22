@@ -8,7 +8,6 @@ class DataLoader(object):
                  device=-1, 
                  max_vocab=9999999, 
                  min_freq=1,
-                 fix_length=None, 
                  use_eos=False, 
                  shuffle=True
                  ):
@@ -18,7 +17,6 @@ class DataLoader(object):
         self.text = data.Field(use_vocab=True, 
                                batch_first=True, 
                                include_lengths=False, 
-                               fix_length=fix_length, 
                                eos_token='<EOS>' if use_eos else None
                                )
 
@@ -34,7 +32,9 @@ class DataLoader(object):
         self.train_iter, self.valid_iter = data.BucketIterator.splits((train, valid), 
                                                                       batch_size=batch_size, 
                                                                       device='cuda:%d' % device if device >= 0 else 'cpu', 
-                                                                      shuffle=shuffle
+                                                                      shuffle=shuffle,
+                                                                      sort_key=lambda x: len(x.text),
+                                                                      sort_within_batch=True
                                                                       )
 
         self.label.build_vocab(train)
