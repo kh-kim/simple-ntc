@@ -131,7 +131,7 @@ I took an evaluation with my own corpus, which is crawled from [clien](https://w
 |15|cm_vcoin|20000|About crypto-currency trading|
 ||Total|261664||
 
-Architecture snapshot is like as below. You may increase the performance with hyper-parameter optimization.
+I split the corpus to make train-set and valid-set. 245,000 lines are sampled for train-set and 16,664 samples for valid-set. Architecture snapshots are like as below. You may increase the performance with hyper-parameter optimization.
 
 ```bash
 RNNClassifier(
