@@ -6,14 +6,14 @@ class DataLoader(object):
     def __init__(self, train_fn, valid_fn, 
                  batch_size=64, 
                  device=-1, 
-                 max_vocab=9999999, 
+                 max_vocab=999999, 
                  min_freq=1,
                  use_eos=False, 
                  shuffle=True
                  ):
         super(DataLoader, self).__init__()
 
-        self.label = data.Field(sequential=False, use_vocab=True)
+        self.label = data.Field(sequential=False, use_vocab=True, unk_token=None)
         self.text = data.Field(use_vocab=True, 
                                batch_first=True, 
                                include_lengths=False, 
@@ -39,3 +39,4 @@ class DataLoader(object):
 
         self.label.build_vocab(train)
         self.text.build_vocab(train, max_size=max_vocab, min_freq=min_freq)
+        

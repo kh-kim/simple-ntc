@@ -36,7 +36,7 @@ def define_field():
     return data.Field(use_vocab=True, 
                       batch_first=True, 
                       include_lengths=False
-                      ), data.Field(sequential=False, use_vocab=True)
+                      ), data.Field(sequential=False, use_vocab=True, unk_token=None)
 
 
 def main(config):
