@@ -20,7 +20,6 @@ def define_argparser():
     p.add_argument('--verbose', type=int, default=2)
     p.add_argument('--min_vocab_freq', type=int, default=2)
     p.add_argument('--max_vocab_size', type=int, default=999999)
-    p.add_argument('--max_length', type=int, default=80)
 
     p.add_argument('--batch_size', type=int, default=64)
     p.add_argument('--n_epochs', type=int, default=10)
@@ -57,6 +56,9 @@ def main(config):
     vocab_size = len(dataset.text.vocab)
     n_classes = len(dataset.label.vocab)
     print('|vocab| =', vocab_size, '|classes| =', n_classes)
+
+    if config.rnn is False and config.cnn is False:
+        raise Exception('You need to specify an architecture to train. (--rnn or --cnn)')
 
     if config.rnn:
         model = RNNClassifier(input_size=vocab_size,
