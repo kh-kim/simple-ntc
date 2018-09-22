@@ -14,6 +14,7 @@ def define_argparser():
     p.add_argument('--model', required=True)
     p.add_argument('--gpu_id', type=int, default=-1)
     p.add_argument('--batch_size', type=int, default=256)
+    p.add_argument('--top_k', type=int, default=1)
 
     config = p.parse_args()
 
@@ -89,6 +90,7 @@ def main(config):
         for model in ensemble:
             if config.gpu_id >= 0:
                 model.cuda(config.gpu_id)
+            model.eval()
 
             y_hat = []
             for idx in range(0, len(lines), config.batch_size):
@@ -99,13 +101,13 @@ def main(config):
             y_hats += [y_hat]
         y_hats = torch.stack(y_hats).exp()
         # |y_hats| = (len(ensemble), len(lines), n_classes)
-        y_hats = y_hats.sum(dim=0) / 2
+        y_hats = y_hats.sum(dim=0) / len(ensemble)
         # |y_hats| = (len(lines), n_classes)
 
-        probs, indice = y_hats.cpu().topk(1)
+        probs, indice = y_hats.cpu().topk(config.top_k)
 
         for i in range(len(lines)):
-            sys.stdout.write('%s\t%s\n' % (classes.itos[indice[i][0]], ' '.join(lines[i])))
+            sys.stdout.write('%s\t%s\n' % (' '.join([classes.itos[indice[i][j]] for j in range(config.top_k)]), ' '.join(lines[i])))
 
 if __name__ == '__main__':
     config = define_argparser()
