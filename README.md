@@ -13,12 +13,17 @@ In addition, this repo is for [lecture](https://www.fastcampus.co.kr/data_camp_n
 
 ## Usage
 
-### Tokenization
+### Preparation
+
+#### Format
+
 ```bash
 
 ```
 
-### Shuffle and Split for Train-set and Valid-set
+#### Tokenization (Optional)
+
+#### Shuffle and Split for Train-set and Valid-set
 
 ### Train
 
