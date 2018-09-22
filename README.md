@@ -1,6 +1,6 @@
 # Simple Nueral Text Classification(NTC)
 
-This repository contains implementation of naive and simple text classification using recurrent neural network (LSTM) and convolutional neural network (from [[Kim et al.2014](http://arxiv.org/abs/1408.5882)]). You need to specify architecture to train, and you can select both. If you choose both arthictecture to classify sentences, inference will be done by ensemble (just simple average).
+This repository contains implementation of naive and simple text classification using recurrent neural network (LSTM) and convolutional neural network (from [[Kim 2014](http://arxiv.org/abs/1408.5882)]). You need to specify architecture to train, and you can select both. If you choose both arthictecture to classify sentences, inference will be done by ensemble (just simple average).
 
 In addition, this repo is for [lecture](https://www.fastcampus.co.kr/data_camp_nlpbasic/) and [book](https://kh-kim.gitbook.io/natural-language-processing-with-pytorch/), what I conduct. Please, refer those site for further information.
 
@@ -170,3 +170,7 @@ Following table shows that the evaluation result of each architecture. The size 
 |email|pointzz.ki@gmail.com|
 |github|https://github.com/kh-kim/|
 |linkedin|https://www.linkedin.com/in/ki-hyun-kim/|
+
+## Reference
+
+- [[Kim 2014](http://arxiv.org/abs/1408.5882)] Yoon Kim. 2014. Convolutional neural networks for sentence classification. arXiv preprint arXiv:1408.5882.
