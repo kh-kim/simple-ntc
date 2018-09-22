@@ -131,6 +131,8 @@ I took an evaluation with my own corpus, which is crawled from [clien](https://w
 |15|cm_vcoin|20000|About crypto-currency trading|
 ||Total|261664||
 
+Architecture snapshot is like as below. You may increase the performance with hyper-parameter optimization.
+
 ```bash
 RNNClassifier(
   (emb): Embedding(35532, 128)
@@ -152,6 +154,14 @@ CNNClassifier(
   (activation): LogSoftmax()
 )
 ```
+
+Following table shows that the evaluation result of each architecture. The size of validation set is 16,664. You can see that the ensemble is slightly better than others.
+
+|Architecture|Valid Loss|Valid Accuracy|
+|-|-|-|
+|Bi-LSTM|7.9818e-01|0.7666|
+|CNN|8.4225e-01|0.7497|
+|Bi-LSTM + CNN||0.7679|
 
 ## Author
 
