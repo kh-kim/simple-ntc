@@ -37,10 +37,9 @@ class RNNClassifier(nn.Module):
         x = self.emb(x)
         # |x| = (batch_size, length, word_vec_dim)
         x, _ = self.rnn(x)
-        # |x| = (batch_size, length * 2, hidden_size)
-        x = x[:, -2:].view(-1, self.hidden_size * 2)
-        # |x| = (batch_size, 2, hidden_size) --> (batch_size, hidden_size * 2)
-        y = self.activation(self.generator(x))
+        # |x| = (batch_size, length, hidden_size * 2)
+        y = self.activation(self.generator(x[:, -1]))
         # |y| = (batch_size, n_classes)
 
         return y
+        

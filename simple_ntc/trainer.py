@@ -41,11 +41,12 @@ class Trainer():
         total_loss, total_param_norm, total_grad_norm = 0, 0, 0
         avg_loss, avg_param_norm, avg_grad_norm = 0, 0, 0
 
-        progress_bar = tqdm(enumerate(train), 
+        progress_bar = tqdm(train, 
                             desc='Training: ', 
                             unit='batch'
                             ) if verbose is VERBOSE_BATCH_WISE else enumerate(train)
-        for idx, (x, y) in progress_bar:
+        for idx, mini_batch in enumerate(progress_bar):
+            x, y = mini_batch.text, mini_batch.label
             optimizer.zero_grad()
 
             y_hat = self.model(x)
@@ -84,7 +85,7 @@ class Trainer():
               ):
         optimizer = torch.optim.Adam(self.model.parameters())
 
-        lowest_loss = np.inf
+        lowest_loss = float('Inf')
         loewst_after = 0
 
         progress_bar = tqdm(range(n_epochs), 
@@ -140,14 +141,15 @@ class Trainer():
                 ):
         with torch.no_grad():
             total_loss = 0
-            progress_bar = tqdm(enumerate(valid), 
+            progress_bar = tqdm(valid, 
                                 desc='Validation: ', 
                                 unit='batch'
                                 ) if verbose is VERBOSE_BATCH_WISE else enumerate(valid)
 
             y_hats = []
             self.model.eval()
-            for idx, (x, y) in progress_bar:
+            for idx, mini_batch in enumerate(progress_bar):
+                x, y = mini_batch.text, mini_batch.label
                 y_hat = self.model(x)
                 
                 loss = self.get_loss(y_hat, y, crit)
