@@ -8,7 +8,11 @@ from torchtext import data
 from simple_ntc.rnn import RNNClassifier
 from simple_ntc.cnn import CNNClassifier
 
+
 def define_argparser():
+    '''
+    Define argument parser to take inference using pre-trained model.
+    '''
     p = argparse.ArgumentParser()
 
     p.add_argument('--model', required=True)
@@ -22,7 +26,9 @@ def define_argparser():
 
 
 def read_text():
-    # This method gets sentences from standard input and tokenize those.
+    '''
+    Read text from standard input for inference.
+    '''
     lines = []
 
     for line in sys.stdin:
@@ -33,17 +39,28 @@ def read_text():
 
 
 def define_field():
-    return data.Field(use_vocab=True, 
-                      batch_first=True, 
-                      include_lengths=False
-                      ), data.Field(sequential=False, use_vocab=True, unk_token=None)
+    '''
+    To avoid use DataLoader class, just declare dummy fields. 
+    With those fields, we can retore mapping table between words and indice.
+    '''
+    return (data.Field(use_vocab=True, 
+                       batch_first=True, 
+                       include_lengths=False
+                       ),
+            data.Field(sequential=False, 
+                       use_vocab=True,
+                       unk_token=None
+                       )
+            )
 
 
 def main(config):
+    '''
+    Main method for inference program.
+    '''
     saved_data = torch.load(config.model)
 
     train_config = saved_data['config']
-
     rnn_best = saved_data['rnn']
     cnn_best = saved_data['cnn']
     vocab = saved_data['vocab']
@@ -61,11 +78,12 @@ def main(config):
     with torch.no_grad():
         # Converts string to list of index.
         x = text_field.numericalize(text_field.pad(lines),
-                                          device='cuda:%d' % config.gpu_id if config.gpu_id >= 0 else 'cpu'
-                                          )
+                                    device='cuda:%d' % config.gpu_id if config.gpu_id >= 0 else 'cpu'
+                                    )
 
         ensemble = []
         if rnn_best is not None:
+            # Declare model and load pre-trained weights.
             model = RNNClassifier(input_size=vocab_size,
                                   word_vec_dim=train_config.word_vec_dim,
                                   hidden_size=train_config.hidden_size,
@@ -76,6 +94,7 @@ def main(config):
             model.load_state_dict(rnn_best['model'])
             ensemble += [model]
         if cnn_best is not None:
+            # Declare model and load pre-trained weights.
             model = CNNClassifier(input_size=vocab_size,
                                   word_vec_dim=train_config.word_vec_dim,
                                   n_classes=n_classes,
@@ -87,28 +106,36 @@ def main(config):
             ensemble += [model]
 
         y_hats = []
+        # Get prediction with iteration on ensemble.
         for model in ensemble:
             if config.gpu_id >= 0:
                 model.cuda(config.gpu_id)
+            # Don't forget turn-on evaluation mode.
             model.eval()
 
             y_hat = []
             for idx in range(0, len(lines), config.batch_size):
                 y_hat += [model(x[idx:idx + config.batch_size])]
+            # Concatenate the mini-batch wise result
             y_hat = torch.cat(y_hat, dim=0)
             # |y_hat| = (len(lines), n_classes)
 
             y_hats += [y_hat]
+        # Merge to one tensor for ensemble result and make probability from log-prob.
         y_hats = torch.stack(y_hats).exp()
         # |y_hats| = (len(ensemble), len(lines), n_classes)
-        y_hats = y_hats.sum(dim=0) / len(ensemble)
+        y_hats = y_hats.sum(dim=0) / len(ensemble) # Get average
         # |y_hats| = (len(lines), n_classes)
 
         probs, indice = y_hats.cpu().topk(config.top_k)
 
         for i in range(len(lines)):
-            sys.stdout.write('%s\t%s\n' % (' '.join([classes.itos[indice[i][j]] for j in range(config.top_k)]), ' '.join(lines[i])))
+            sys.stdout.write('%s\t%s\n' % (' '.join([classes.itos[indice[i][j]] for j in range(config.top_k)]), 
+                             ' '.join(lines[i]))
+                             )
+
 
 if __name__ == '__main__':
     config = define_argparser()
     main(config)
+    
