@@ -99,7 +99,7 @@ class Trainer():
         optimizer = torch.optim.Adam(self.model.parameters())
 
         lowest_loss = float('Inf')
-        loewst_after = 0
+        lowest_after = 0
 
         progress_bar = tqdm(range(n_epochs), 
                             desc='Training: ', 
@@ -123,16 +123,16 @@ class Trainer():
             # Print train status with different verbosity.
             if verbose is VERBOSE_EPOCH_WISE:
                 progress_bar.set_postfix_str('|param|=%.2f |g_param|=%.2f train_loss=%.4e valid_loss=%.4e min_valid_loss=%.4e' % (float(avg_param_norm),
-                                                                                                                                      float(avg_grad_norm),
-                                                                                                                                      float(avg_train_loss),
-                                                                                                                                      float(avg_valid_loss),
-                                                                                                                                      float(lowest_loss)
-                                                                                                                                      ))
+                                                                                                                                  float(avg_grad_norm),
+                                                                                                                                  float(avg_train_loss),
+                                                                                                                                  float(avg_valid_loss),
+                                                                                                                                  float(lowest_loss)
+                                                                                                                                  ))
 
             if avg_valid_loss < lowest_loss:
                 # Update if there is an improvement.
                 lowest_loss = avg_valid_loss
-                loewst_after = 0
+                lowest_after = 0
 
                 self.best = {'model': self.model.state_dict(),
                              'optim': optimizer,
@@ -140,9 +140,9 @@ class Trainer():
                              'lowest_loss': lowest_loss
                              }
             else:
-                loewst_after += 1
+                lowest_after += 1
 
-                if loewst_after >= early_stop and early_stop > 0:
+                if lowest_after >= early_stop and early_stop > 0:
                     break
         if verbose is VERBOSE_EPOCH_WISE:
             progress_bar.close()
