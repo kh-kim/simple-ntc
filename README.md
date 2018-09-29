@@ -1,4 +1,4 @@
-# Simple Nueral Text Classification(NTC)
+# Simple Neural Text Classification(NTC)
 
 This repository contains implementation of naive and simple text classification using recurrent neural network (LSTM) and convolutional neural network (from [[Kim 2014](http://arxiv.org/abs/1408.5882)]). You need to specify architecture to train, and you can select both. If you choose both arthictecture to classify sentences, inference will be done by ensemble (just simple average).
 
