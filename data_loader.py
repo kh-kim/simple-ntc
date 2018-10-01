@@ -1,4 +1,4 @@
-from torchtext import data, datasets
+from torchtext import data
 
 
 class DataLoader(object):

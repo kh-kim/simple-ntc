@@ -114,22 +114,22 @@ I took an evaluation with my own corpus, which is crawled from [clien](https://w
 
 |No|Class Name|#Samples|Topic|
 |-|-|-|-|
-|1|cm_andro|20000|Android development|
-|2|cm_baby|15597|Raising baby|
-|3|cm_bike|20000|Bike hobby|
-|4|cm_car|20000|Car hobby|
-|5|cm_coffee|19390|Coffee hobby|
-|6|cm_gym|20000|Working out|
-|7|cm_havehome|13062|About having(or rent) home|
-|8|cm_iphonien|20000|About iPhone|
-|9|cm_ku|20000|About anime|
-|10|cm_lego|20000|Lego hobby|
-|11|cm_mac|20000|About Macintosh|
-|12|cm_nas|11206|About NAS(Network Attached Storage)|
-|13|cm_oversea|10381|About living in oversea|
-|14|cm_stock|12028|About stock trading|
-|15|cm_vcoin|20000|About crypto-currency trading|
-||Total|261664||
+|1|cm_andro|20,000|Android development|
+|2|cm_baby|15,597|Raising baby|
+|3|cm_bike|20,000|Bike hobby|
+|4|cm_car|20,000|Car hobby|
+|5|cm_coffee|19,390|Coffee hobby|
+|6|cm_gym|20,000|Working out|
+|7|cm_havehome|13,062|About having(or rent) home|
+|8|cm_iphonien|20,000|About iPhone|
+|9|cm_ku|20,000|About anime|
+|10|cm_lego|20,000|Lego hobby|
+|11|cm_mac|20,000|About Macintosh|
+|12|cm_nas|11,206|About NAS(Network Attached Storage)|
+|13|cm_oversea|10,381|About living in oversea|
+|14|cm_stock|12,028|About stock trading|
+|15|cm_vcoin|20,000|About crypto-currency trading|
+||Total|261,664||
 
 I split the corpus to make train-set and valid-set. 245,000 lines are sampled for train-set and 16,664 samples for valid-set. Architecture snapshots are like as below. You may increase the performance with hyper-parameter optimization.
 
