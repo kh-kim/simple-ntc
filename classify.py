@@ -40,7 +40,7 @@ def define_field():
 
 
 def main(config):
-    saved_data = torch.load(config.model)
+    saved_data = torch.load(config.model, map_location='cpu' if config.gpu_id < 0 else 'cuda:%d' % config.gpu_id)
 
     train_config = saved_data['config']
 
