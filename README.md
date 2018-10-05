@@ -1,6 +1,6 @@
-# Simple Nueral Text Classification(NTC)
+# Simple Neural Text Classification(NTC)
 
-This repository contains implementation of naive and simple text classification using recurrent neural network (LSTM) and convolutional neural network (from [[Kim et al.2014](http://arxiv.org/abs/1408.5882)]). You need to specify architecture to train, and you can select both. If you choose both arthictecture to classify sentences, inference will be done by ensemble (just simple average).
+This repository contains implementation of naive and simple text classification using recurrent neural network (LSTM) and convolutional neural network (from [[Kim 2014](http://arxiv.org/abs/1408.5882)]). You need to specify architecture to train, and you can select both. If you choose both arthictecture to classify sentences, inference will be done by ensemble (just simple average).
 
 In addition, this repo is for [lecture](https://www.fastcampus.co.kr/data_camp_nlpbasic/) and [book](https://kh-kim.gitbook.io/natural-language-processing-with-pytorch/), what I conduct. Please, refer those site for further information.
 
@@ -8,7 +8,7 @@ In addition, this repo is for [lecture](https://www.fastcampus.co.kr/data_camp_n
 
 - Python 3.6 or higher
 - PyTorch 0.4 or higher
-- TorchText 0.3 or higher (You cannot install this version via pip.)
+- TorchText 0.3 or higher (You may need to install via [github](https://github.com/pytorch/text).)
 - Tokenized corpus (e.g. [Moses](https://www.nltk.org/_modules/nltk/tokenize/moses.html), Mecab, [Jieba](https://github.com/fxsjy/jieba))
 
 ## Usage
@@ -114,22 +114,22 @@ I took an evaluation with my own corpus, which is crawled from [clien](https://w
 
 |No|Class Name|#Samples|Topic|
 |-|-|-|-|
-|1|cm_andro|20000|Android development|
-|2|cm_baby|15597|Raising baby|
-|3|cm_bike|20000|Bike hobby|
-|4|cm_car|20000|Car hobby|
-|5|cm_coffee|19390|Coffee hobby|
-|6|cm_gym|20000|Working out|
-|7|cm_havehome|13062|About having(or rent) home|
-|8|cm_iphonien|20000|About iPhone|
-|9|cm_ku|20000|About anime|
-|10|cm_lego|20000|Lego hobby|
-|11|cm_mac|20000|About Macintosh|
-|12|cm_nas|11206|About NAS(Network Attached Storage)|
-|13|cm_oversea|10381|About living in oversea|
-|14|cm_stock|12028|About stock trading|
-|15|cm_vcoin|20000|About crypto-currency trading|
-||Total|261664||
+|1|cm_andro|20,000|Android development|
+|2|cm_baby|15,597|Raising baby|
+|3|cm_bike|20,000|Bike hobby|
+|4|cm_car|20,000|Car hobby|
+|5|cm_coffee|19,390|Coffee hobby|
+|6|cm_gym|20,000|Working out|
+|7|cm_havehome|13,062|About having(or rent) home|
+|8|cm_iphonien|20,000|About iPhone|
+|9|cm_ku|20,000|About anime|
+|10|cm_lego|20,000|Lego hobby|
+|11|cm_mac|20,000|About Macintosh|
+|12|cm_nas|11,206|About NAS(Network Attached Storage)|
+|13|cm_oversea|10,381|About living in oversea|
+|14|cm_stock|12,028|About stock trading|
+|15|cm_vcoin|20,000|About crypto-currency trading|
+||Total|261,664||
 
 I split the corpus to make train-set and valid-set. 245,000 lines are sampled for train-set and 16,664 samples for valid-set. Architecture snapshots are like as below. You may increase the performance with hyper-parameter optimization.
 
@@ -190,3 +190,7 @@ Below is confusion matrix of validation-set.
 |email|pointzz.ki@gmail.com|
 |github|https://github.com/kh-kim/|
 |linkedin|https://www.linkedin.com/in/ki-hyun-kim/|
+
+## Reference
+
+- [[Kim 2014](http://arxiv.org/abs/1408.5882)] Yoon Kim. 2014. Convolutional neural networks for sentence classification. arXiv preprint arXiv:1408.5882.

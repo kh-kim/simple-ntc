@@ -11,6 +11,9 @@ from simple_ntc.trainer import Trainer
 
 
 def define_argparser():
+    '''
+    Define argument parser to handle parameters.
+    '''
     p = argparse.ArgumentParser()
 
     p.add_argument('--model', required=True)
@@ -45,6 +48,10 @@ def define_argparser():
 
 
 def main(config):
+    '''
+    The main method of the program to train text classification.
+    :param config: configuration from argument parser.
+    '''
     dataset = DataLoader(train_fn=config.train,
                          valid_fn=config.valid,
                          batch_size=config.batch_size,
@@ -61,6 +68,7 @@ def main(config):
         raise Exception('You need to specify an architecture to train. (--rnn or --cnn)')
 
     if config.rnn:
+        # Declare model and loss.
         model = RNNClassifier(input_size=vocab_size,
                               word_vec_dim=config.word_vec_dim,
                               hidden_size=config.hidden_size,
@@ -75,6 +83,7 @@ def main(config):
             model.cuda(config.gpu_id)
             crit.cuda(config.gpu_id)
 
+        # Train until converge
         rnn_trainer = Trainer(model, crit)
         rnn_trainer.train(dataset.train_iter,
                           dataset.valid_iter,
@@ -84,6 +93,7 @@ def main(config):
                           verbose=config.verbose
                           )
     if config.cnn:
+        # Declare model and loss.
         model = CNNClassifier(input_size=vocab_size,
                               word_vec_dim=config.word_vec_dim,
                               n_classes=n_classes,
@@ -98,6 +108,7 @@ def main(config):
             model.cuda(config.gpu_id)
             crit.cuda(config.gpu_id)
 
+        # Train until converge
         cnn_trainer = Trainer(model, crit)
         cnn_trainer.train(dataset.train_iter,
                           dataset.valid_iter,
@@ -113,6 +124,7 @@ def main(config):
                 'vocab': dataset.text.vocab,
                 'classes': dataset.label.vocab
                 }, config.model)
+
 
 if __name__ == '__main__':
     config = define_argparser()
