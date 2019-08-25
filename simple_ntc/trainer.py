@@ -113,6 +113,5 @@ class Trainer():
                 engine.best_model = deepcopy(engine.model.state_dict())
 
         trainer.run(train_loader, max_epochs=self.config.n_epochs)
-        model.load_state_dict(evaluator.best_model)
 
-        return model
+        return evaluator.best_model

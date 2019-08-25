@@ -105,7 +105,7 @@ Also, you can see the arguments, and see the default values on classify.py.
 
 ```bash
 $ python classify.py -h
-usage: classify.py [-h] --model MODEL [--gpu_id GPU_ID]
+usage: classify.py [-h] --model_fn MODEL [--gpu_id GPU_ID]
                    [--batch_size BATCH_SIZE] [--top_k TOP_K]
 ```
 
