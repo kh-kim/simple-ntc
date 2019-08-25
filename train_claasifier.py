@@ -7,7 +7,7 @@ from data_loader import DataLoader
 
 from simple_ntc.rnn import RNNClassifier
 from simple_ntc.cnn import CNNClassifier
-from simple_ntc.trainer_with_ignite import TextClassification
+from simple_ntc.trainer_with_ignite import Trainer
 
 
 def define_argparser():
@@ -30,13 +30,14 @@ def define_argparser():
     p.add_argument('--n_epochs', type=int, default=10)
 
     p.add_argument('--word_vec_size', type=int, default= 256)
+    p.add_argument('--dropout', type=float, default=.3)
     
     p.add_argument('--rnn', action='store_true')
     p.add_argument('--hidden_size', type=int, default=512)
-    p.add_argument('--dropout', type=float, default=.3)
     p.add_argument('--n_layers', type=int, default=4)
 
     p.add_argument('--cnn', action='store_true')
+    p.add_argument('--use_batch_norm', action='store_true')
     p.add_argument('--window_sizes', type=str, default='3,4,5')
     p.add_argument('--n_filters', type=str, default='100,100,100')
 
@@ -80,13 +81,14 @@ def main(config):
             model.cuda(config.gpu_id)
             crit.cuda(config.gpu_id)
 
-        rnn_trainer = TextClassification(config)
+        rnn_trainer = Trainer(config)
         rnn_model = rnn_trainer.train(model, crit, dataset.train_iter, dataset.valid_iter)
     if config.cnn:
         # Declare model and loss.
         model = CNNClassifier(input_size=vocab_size,
                               word_vec_dim=config.word_vec_size,
                               n_classes=n_classes,
+                              use_batch_norm=config.use_batch_norm,
                               dropout_p=config.dropout,
                               window_sizes=config.window_sizes,
                               n_filters=config.n_filters
@@ -98,7 +100,7 @@ def main(config):
             model.cuda(config.gpu_id)
             crit.cuda(config.gpu_id)
 
-        cnn_trainer = TextClassification(config)
+        cnn_trainer = Trainer(config)
         cnn_model = cnn_trainer.train(model, crit, dataset.train_iter, dataset.valid_iter)
 
     torch.save({'rnn': rnn_model if config.rnn else None,

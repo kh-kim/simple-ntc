@@ -5,7 +5,7 @@ from torch import optim
 from ignite.engine import Engine, Events
 
 
-class TextClassification():
+class Trainer():
 
     def __init__(self, config):
         self.config = config
@@ -65,7 +65,12 @@ class TextClassification():
                 avg_g_norm = engine.state.metrics['|g_param|']
                 avg_loss = engine.state.metrics['loss']
 
-                print('Epoch {} - |param|={:.2e} |g_param|={:.2e} loss={:.4e}'.format(engine.state.epoch, avg_p_norm, avg_g_norm, avg_loss))
+                print('Epoch {} - |param|={:.2e} |g_param|={:.2e} loss={:.4e}'.format(
+                    engine.state.epoch,
+                    avg_p_norm,
+                    avg_g_norm,
+                    avg_loss
+                ))
 
         RunningAverage(output_transform=lambda x: x).attach(evaluator, 'loss')
 
@@ -82,14 +87,14 @@ class TextClassification():
     def train(self, model, crit, train_loader, valid_loader):
         optimizer = optim.Adam(model.parameters())
 
-        trainer = Engine(TextClassification.step)
+        trainer = Engine(Trainer.step)
         trainer.model, trainer.crit, trainer.optimizer = model, crit, optimizer
 
-        evaluator = Engine(TextClassification.validate)
+        evaluator = Engine(Trainer.validate)
         evaluator.model, evaluator.crit = model, crit
         evaluator.lowest_loss = np.inf
 
-        TextClassification.attach(trainer, evaluator, verbose=self.config.verbose)
+        Trainer.attach(trainer, evaluator, verbose=self.config.verbose)
 
         def run_validation(engine, evaluator, valid_loader):
             evaluator.run(valid_loader, max_epochs=1)
