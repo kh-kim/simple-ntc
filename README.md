@@ -7,8 +7,9 @@ In addition, this repo is for [lecture](https://www.fastcampus.co.kr/data_camp_n
 ## Pre-requisite
 
 - Python 3.6 or higher
-- PyTorch 0.4 or higher
-- TorchText 0.3 or higher (You may need to install via [github](https://github.com/pytorch/text).)
+- PyTorch 1.1 or higher
+- PyTorch Ignite
+- TorchText 0.4 or higher
 - Tokenized corpus (e.g. [Moses](https://www.nltk.org/_modules/nltk/tokenize/moses.html), Mecab, [Jieba](https://github.com/fxsjy/jieba))
 
 ## Usage
