@@ -12,30 +12,32 @@ from simple_ntc.trainer import Trainer
 
 def define_argparser():
     '''
-    Define argument parser to handle parameters.
+    Define argument parser to set hyper-parameters.
     '''
     p = argparse.ArgumentParser()
 
-    p.add_argument('--model', required=True)
+    p.add_argument('--model_fn', required=True)
     p.add_argument('--train', required=True)
     p.add_argument('--valid', required=True)
+    
     p.add_argument('--gpu_id', type=int, default=-1)
     p.add_argument('--verbose', type=int, default=2)
+
     p.add_argument('--min_vocab_freq', type=int, default=2)
     p.add_argument('--max_vocab_size', type=int, default=999999)
 
-    p.add_argument('--batch_size', type=int, default=64)
+    p.add_argument('--batch_size', type=int, default=256)
     p.add_argument('--n_epochs', type=int, default=10)
-    p.add_argument('--early_stop', type=int, default=-1)
 
+    p.add_argument('--word_vec_size', type=int, default= 256)
     p.add_argument('--dropout', type=float, default=.3)
-    p.add_argument('--word_vec_dim', type=int, default=128)
-    p.add_argument('--hidden_size', type=int, default=256)
-
+    
     p.add_argument('--rnn', action='store_true')
+    p.add_argument('--hidden_size', type=int, default=512)
     p.add_argument('--n_layers', type=int, default=4)
 
     p.add_argument('--cnn', action='store_true')
+    p.add_argument('--use_batch_norm', action='store_true')
     p.add_argument('--window_sizes', type=str, default='3,4,5')
     p.add_argument('--n_filters', type=str, default='100,100,100')
 
@@ -48,10 +50,6 @@ def define_argparser():
 
 
 def main(config):
-    '''
-    The main method of the program to train text classification.
-    :param config: configuration from argument parser.
-    '''
     dataset = DataLoader(train_fn=config.train,
                          valid_fn=config.valid,
                          batch_size=config.batch_size,
@@ -70,7 +68,7 @@ def main(config):
     if config.rnn:
         # Declare model and loss.
         model = RNNClassifier(input_size=vocab_size,
-                              word_vec_dim=config.word_vec_dim,
+                              word_vec_dim=config.word_vec_size,
                               hidden_size=config.hidden_size,
                               n_classes=n_classes,
                               n_layers=config.n_layers,
@@ -83,20 +81,14 @@ def main(config):
             model.cuda(config.gpu_id)
             crit.cuda(config.gpu_id)
 
-        # Train until converge
-        rnn_trainer = Trainer(model, crit)
-        rnn_trainer.train(dataset.train_iter,
-                          dataset.valid_iter,
-                          batch_size=config.batch_size,
-                          n_epochs=config.n_epochs,
-                          early_stop=config.early_stop,
-                          verbose=config.verbose
-                          )
+        rnn_trainer = Trainer(config)
+        rnn_model = rnn_trainer.train(model, crit, dataset.train_iter, dataset.valid_iter)
     if config.cnn:
         # Declare model and loss.
         model = CNNClassifier(input_size=vocab_size,
-                              word_vec_dim=config.word_vec_dim,
+                              word_vec_dim=config.word_vec_size,
                               n_classes=n_classes,
+                              use_batch_norm=config.use_batch_norm,
                               dropout_p=config.dropout,
                               window_sizes=config.window_sizes,
                               n_filters=config.n_filters
@@ -108,23 +100,15 @@ def main(config):
             model.cuda(config.gpu_id)
             crit.cuda(config.gpu_id)
 
-        # Train until converge
-        cnn_trainer = Trainer(model, crit)
-        cnn_trainer.train(dataset.train_iter,
-                          dataset.valid_iter,
-                          batch_size=config.batch_size,
-                          n_epochs=config.n_epochs,
-                          early_stop=config.early_stop,
-                          verbose=config.verbose
-                          )
+        cnn_trainer = Trainer(config)
+        cnn_model = cnn_trainer.train(model, crit, dataset.train_iter, dataset.valid_iter)
 
-    torch.save({'rnn': rnn_trainer.best if config.rnn else None,
-                'cnn': cnn_trainer.best if config.cnn else None,
+    torch.save({'rnn': rnn_model if config.rnn else None,
+                'cnn': cnn_model if config.cnn else None,
                 'config': config,
                 'vocab': dataset.text.vocab,
                 'classes': dataset.label.vocab
-                }, config.model)
-
+                }, config.model_fn)
 
 if __name__ == '__main__':
     config = define_argparser()

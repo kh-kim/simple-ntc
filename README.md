@@ -7,8 +7,9 @@ In addition, this repo is for [lecture](https://www.fastcampus.co.kr/data_camp_n
 ## Pre-requisite
 
 - Python 3.6 or higher
-- PyTorch 0.4 or higher
-- TorchText 0.3 or higher (You may need to install via [github](https://github.com/pytorch/text).)
+- PyTorch 1.1 or higher
+- PyTorch Ignite
+- TorchText 0.4 or higher
 - Tokenized corpus (e.g. [Moses](https://www.nltk.org/_modules/nltk/tokenize/moses.html), Mecab, [Jieba](https://github.com/fxsjy/jieba))
 
 ## Usage
@@ -63,21 +64,21 @@ Now, you have 246,664 samples for train-set, and 15,000 samples for valid-set. N
 Below is the example command for training. You can select your own hyper-parameter values via argument inputs.
 
 ```bash
-python train.py --model ./models/model.pth --train ./data/corpus.train.txt --valid ./data/corpus.valid.txt --rnn --cnn --gpu_id 0
+python train.py --model_fn ./models/model.pth --train ./data/corpus.train.txt --valid ./data/corpus.valid.txt --rnn --cnn --gpu_id 0
 ```
 
 Note that you need to specify an architecture for training. You can select both rnn and cnn for ensemble method. Also, you can select the device to use for training. In order to use CPU only, you can put -1 for '--gpu_id' argument, which is default value.
 
 ```bash
 $ python train.py -h
-usage: train.py [-h] --model MODEL --train TRAIN --valid VALID
+usage: train.py [-h] --model_fn MODEL_FN --train TRAIN --valid VALID
                 [--gpu_id GPU_ID] [--verbose VERBOSE]
                 [--min_vocab_freq MIN_VOCAB_FREQ]
                 [--max_vocab_size MAX_VOCAB_SIZE] [--batch_size BATCH_SIZE]
-                [--n_epochs N_EPOCHS] [--early_stop EARLY_STOP]
-                [--dropout DROPOUT] [--word_vec_dim WORD_VEC_DIM]
-                [--hidden_size HIDDEN_SIZE] [--rnn] [--n_layers N_LAYERS]
-                [--cnn] [--window_sizes WINDOW_SIZES] [--n_filters N_FILTERS]
+                [--n_epochs N_EPOCHS] [--word_vec_size WORD_VEC_SIZE]
+                [--dropout DROPOUT] [--rnn] [--hidden_size HIDDEN_SIZE]
+                [--n_layers N_LAYERS] [--cnn] [--use_batch_norm]
+                [--window_sizes WINDOW_SIZES] [--n_filters N_FILTERS]
 ```
 
 or you can check default hyper-parameter from train.py.
@@ -104,7 +105,7 @@ Also, you can see the arguments, and see the default values on classify.py.
 
 ```bash
 $ python classify.py -h
-usage: classify.py [-h] --model MODEL [--gpu_id GPU_ID]
+usage: classify.py [-h] --model_fn MODEL [--gpu_id GPU_ID]
                    [--batch_size BATCH_SIZE] [--top_k TOP_K]
 ```
 

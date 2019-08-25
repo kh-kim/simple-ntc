@@ -15,7 +15,7 @@ def define_argparser():
     '''
     p = argparse.ArgumentParser()
 
-    p.add_argument('--model', required=True)
+    p.add_argument('--model_fn', required=True)
     p.add_argument('--gpu_id', type=int, default=-1)
     p.add_argument('--batch_size', type=int, default=256)
     p.add_argument('--top_k', type=int, default=1)
@@ -55,7 +55,7 @@ def define_field():
 
 
 def main(config):
-    saved_data = torch.load(config.model, map_location='cpu' if config.gpu_id < 0 else 'cuda:%d' % config.gpu_id)
+    saved_data = torch.load(config.model_fn, map_location='cpu' if config.gpu_id < 0 else 'cuda:%d' % config.gpu_id)
 
     train_config = saved_data['config']
     rnn_best = saved_data['rnn']
@@ -82,24 +82,25 @@ def main(config):
         if rnn_best is not None:
             # Declare model and load pre-trained weights.
             model = RNNClassifier(input_size=vocab_size,
-                                  word_vec_dim=train_config.word_vec_dim,
+                                  word_vec_dim=train_config.word_vec_size,
                                   hidden_size=train_config.hidden_size,
                                   n_classes=n_classes,
                                   n_layers=train_config.n_layers,
                                   dropout_p=train_config.dropout
                                   )
-            model.load_state_dict(rnn_best['model'])
+            model.load_state_dict(rnn_best)
             ensemble += [model]
         if cnn_best is not None:
             # Declare model and load pre-trained weights.
             model = CNNClassifier(input_size=vocab_size,
-                                  word_vec_dim=train_config.word_vec_dim,
+                                  word_vec_dim=train_config.word_vec_size,
                                   n_classes=n_classes,
+                                  use_batch_norm=train_config.use_batch_norm,
                                   dropout_p=train_config.dropout,
                                   window_sizes=train_config.window_sizes,
                                   n_filters=train_config.n_filters
                                   )
-            model.load_state_dict(cnn_best['model'])
+            model.load_state_dict(cnn_best)
             ensemble += [model]
 
         y_hats = []
