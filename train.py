@@ -39,13 +39,10 @@ def define_argparser():
 
     p.add_argument('--cnn', action='store_true')
     p.add_argument('--use_batch_norm', action='store_true')
-    p.add_argument('--window_sizes', type=str, default='3,4,5')
-    p.add_argument('--n_filters', type=str, default='100,100,100')
+    p.add_argument('--window_sizes', type=int, nargs=3, default=[3, 4, 5])
+    p.add_argument('--n_filters', type=int, nargs=3, default=[100, 100, 100])
 
     config = p.parse_args()
-
-    config.window_sizes = list(map(int, config.window_sizes.split(',')))
-    config.n_filters = list(map(int, config.n_filters.split(',')))
 
     return config
 
