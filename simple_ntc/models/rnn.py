@@ -5,14 +5,14 @@ class RNNClassifier(nn.Module):
 
     def __init__(self, 
                  input_size, 
-                 word_vec_dim, 
+                 word_vec_size, 
                  hidden_size, 
                  n_classes,
                  n_layers=4, 
                  dropout_p=.3
                  ):
         self.input_size = input_size  # vocabulary_size
-        self.word_vec_dim = word_vec_dim
+        self.word_vec_dim = word_vec_size
         self.hidden_size = hidden_size
         self.n_classes = n_classes
         self.n_layers = n_layers
@@ -20,8 +20,8 @@ class RNNClassifier(nn.Module):
 
         super().__init__()
 
-        self.emb = nn.Embedding(input_size, word_vec_dim)
-        self.rnn = nn.LSTM(input_size=word_vec_dim,
+        self.emb = nn.Embedding(input_size, word_vec_size)
+        self.rnn = nn.LSTM(input_size=word_vec_size,
                            hidden_size=hidden_size,
                            num_layers=n_layers,
                            dropout=dropout_p,
@@ -35,7 +35,7 @@ class RNNClassifier(nn.Module):
     def forward(self, x):
         # |x| = (batch_size, length)
         x = self.emb(x)
-        # |x| = (batch_size, length, word_vec_dim)
+        # |x| = (batch_size, length, word_vec_size)
         x, _ = self.rnn(x)
         # |x| = (batch_size, length, hidden_size * 2)
         y = self.activation(self.generator(x[:, -1]))
