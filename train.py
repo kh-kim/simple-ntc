@@ -115,8 +115,8 @@ def main(config):
             dataset.valid_iter
         )
 
-    torch.save({'rnn': rnn_model if config.rnn else None,
-                'cnn': cnn_model if config.cnn else None,
+    torch.save({'rnn': rnn_model.state_dict() if config.rnn else None,
+                'cnn': cnn_model.state_dict() if config.cnn else None,
                 'config': config,
                 'vocab': dataset.text.vocab,
                 'classes': dataset.label.vocab

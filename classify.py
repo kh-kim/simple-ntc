@@ -55,7 +55,10 @@ def define_field():
 
 
 def main(config):
-    saved_data = torch.load(config.model_fn, map_location='cpu' if config.gpu_id < 0 else 'cuda:%d' % config.gpu_id)
+    saved_data = torch.load(
+        config.model_fn,
+        map_location='cpu' if config.gpu_id < 0 else 'cuda:%d' % config.gpu_id
+    )
 
     train_config = saved_data['config']
     rnn_best = saved_data['rnn']
