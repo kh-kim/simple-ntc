@@ -4,11 +4,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from data_loader import DataLoader
-
-from simple_ntc.rnn import RNNClassifier
-from simple_ntc.cnn import CNNClassifier
 from simple_ntc.trainer import Trainer
+from simple_ntc.data_loader import DataLoader
+
+from simple_ntc.models.rnn import RNNClassifier
+from simple_ntc.models.cnn import CNNClassifier
 
 
 def define_argparser():
