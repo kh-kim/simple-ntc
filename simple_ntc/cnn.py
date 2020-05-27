@@ -26,25 +26,20 @@ class CNNClassifier(nn.Module):
         super().__init__()
 
         self.emb = nn.Embedding(input_size, word_vec_dim)
-        # Since number of convolution layers would be vary depend on len(window_sizes),
-        # we use 'setattr' and 'getattr' methods to add layers to nn.Module object.
+        self.feature_extractors = nn.ModuleList()
         for window_size, n_filter in zip(window_sizes, n_filters):
-            cnn = nn.Conv2d(in_channels=1,
-                            out_channels=n_filter,
-                            kernel_size=(window_size, word_vec_dim)
-                            )
-            setattr(self, 'cnn-%d-%d' % (window_size, n_filter), cnn)
+            self.feature_extractors.append(
+                nn.Sequential(
+                    nn.Conv2d(
+                        in_channels=1,
+                        out_channels=n_filter,
+                        kernel_size=(window_size, word_vec_dim),
+                    ),
+                    nn.ReLU(),
+                    nn.BatchNorm2d(n_filter) if use_batch_norm else nn.Dropout(dropout_p),
+                )
+            )
 
-            if use_batch_norm:
-                bn = nn.BatchNorm2d(n_filter)
-                setattr(self, 'bn-%d-%d' % (window_size, n_filter), bn)
-        # Because below layers are just operations, 
-        # (it does not have learnable parameters)
-        # we just declare once.
-        
-        if not use_batch_norm:
-            self.dropout = nn.Dropout(dropout_p)
-        self.relu = nn.ReLU()
         # An input of generator layer is max values from each filter.
         self.generator = nn.Linear(sum(n_filters), n_classes)
         # We use LogSoftmax + NLLLoss instead of Softmax + CrossEntropy
@@ -70,13 +65,8 @@ class CNNClassifier(nn.Module):
         # |x| = (batch_size, 1, length, word_vec_dim)
 
         cnn_outs = []
-        for window_size, n_filter in zip(self.window_sizes, self.n_filters):
-            cnn = getattr(self, 'cnn-%d-%d' % (window_size, n_filter))
-            if self.use_batch_norm:
-                bn = getattr(self, 'bn-%d-%d' % (window_size, n_filter))
-                cnn_out = bn(self.relu(cnn(x)))
-            else:
-                cnn_out = self.dropout(self.relu(cnn(x)))
+        for block in self.feature_extractors:
+            cnn_out = block(x)
             # |cnn_out| = (batch_size, n_filter, length - window_size + 1, 1)
 
             # In case of max pooling, we does not know the pooling size,
