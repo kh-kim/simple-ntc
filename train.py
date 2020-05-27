@@ -2,6 +2,7 @@ import argparse
 
 import torch
 import torch.nn as nn
+import torch.optim as optim
 
 from data_loader import DataLoader
 
@@ -74,6 +75,7 @@ def main(config):
                               n_layers=config.n_layers,
                               dropout_p=config.dropout
                               )
+        optimizer = optim.Adam(model.parameters())
         crit = nn.NLLLoss()
         print(model)
 
@@ -82,7 +84,13 @@ def main(config):
             crit.cuda(config.gpu_id)
 
         rnn_trainer = Trainer(config)
-        rnn_model = rnn_trainer.train(model, crit, dataset.train_iter, dataset.valid_iter)
+        rnn_model = rnn_trainer.train(
+            model,
+            crit,
+            optimizer,
+            dataset.train_iter,
+            dataset.valid_iter
+        )
     if config.cnn:
         # Declare model and loss.
         model = CNNClassifier(input_size=vocab_size,
@@ -93,6 +101,7 @@ def main(config):
                               window_sizes=config.window_sizes,
                               n_filters=config.n_filters
                               )
+        optimizer = optim.Adam(model.parameters())
         crit = nn.NLLLoss()
         print(model)
 
@@ -101,7 +110,13 @@ def main(config):
             crit.cuda(config.gpu_id)
 
         cnn_trainer = Trainer(config)
-        cnn_model = cnn_trainer.train(model, crit, dataset.train_iter, dataset.valid_iter)
+        cnn_model = cnn_trainer.train(
+            model,
+            crit,
+            optimizer,
+            dataset.train_iter,
+            dataset.valid_iter
+        )
 
     torch.save({'rnn': rnn_model if config.rnn else None,
                 'cnn': cnn_model if config.cnn else None,
