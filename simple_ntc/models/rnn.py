@@ -12,7 +12,7 @@ class RNNClassifier(nn.Module):
                  dropout_p=.3
                  ):
         self.input_size = input_size  # vocabulary_size
-        self.word_vec_dim = word_vec_size
+        self.word_vec_size = word_vec_size
         self.hidden_size = hidden_size
         self.n_classes = n_classes
         self.n_layers = n_layers

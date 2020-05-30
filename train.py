@@ -66,7 +66,7 @@ def main(config):
     if config.rnn:
         # Declare model and loss.
         model = RNNClassifier(input_size=vocab_size,
-                              word_vec_dim=config.word_vec_size,
+                              word_vec_size=config.word_vec_size,
                               hidden_size=config.hidden_size,
                               n_classes=n_classes,
                               n_layers=config.n_layers,
@@ -91,7 +91,7 @@ def main(config):
     if config.cnn:
         # Declare model and loss.
         model = CNNClassifier(input_size=vocab_size,
-                              word_vec_dim=config.word_vec_size,
+                              word_vec_size=config.word_vec_size,
                               n_classes=n_classes,
                               use_batch_norm=config.use_batch_norm,
                               dropout_p=config.dropout,

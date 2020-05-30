@@ -85,7 +85,7 @@ def main(config):
         if rnn_best is not None:
             # Declare model and load pre-trained weights.
             model = RNNClassifier(input_size=vocab_size,
-                                  word_vec_dim=train_config.word_vec_size,
+                                  word_vec_size=train_config.word_vec_size,
                                   hidden_size=train_config.hidden_size,
                                   n_classes=n_classes,
                                   n_layers=train_config.n_layers,
@@ -96,7 +96,7 @@ def main(config):
         if cnn_best is not None:
             # Declare model and load pre-trained weights.
             model = CNNClassifier(input_size=vocab_size,
-                                  word_vec_dim=train_config.word_vec_size,
+                                  word_vec_size=train_config.word_vec_size,
                                   n_classes=n_classes,
                                   use_batch_norm=train_config.use_batch_norm,
                                   dropout_p=train_config.dropout,
@@ -139,4 +139,3 @@ def main(config):
 if __name__ == '__main__':
     config = define_argparser()
     main(config)
-    
