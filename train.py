@@ -18,13 +18,12 @@ def define_argparser():
     p = argparse.ArgumentParser()
 
     p.add_argument('--model_fn', required=True)
-    p.add_argument('--train', required=True)
-    p.add_argument('--valid', required=True)
+    p.add_argument('--train_fn', required=True)
     
     p.add_argument('--gpu_id', type=int, default=-1)
     p.add_argument('--verbose', type=int, default=2)
 
-    p.add_argument('--min_vocab_freq', type=int, default=2)
+    p.add_argument('--min_vocab_freq', type=int, default=5)
     p.add_argument('--max_vocab_size', type=int, default=999999)
 
     p.add_argument('--batch_size', type=int, default=256)
@@ -48,16 +47,17 @@ def define_argparser():
 
 
 def main(config):
-    dataset = DataLoader(train_fn=config.train,
-                         valid_fn=config.valid,
+    loaders = DataLoader(train_fn=config.train_fn,
                          batch_size=config.batch_size,
                          min_freq=config.min_vocab_freq,
                          max_vocab=config.max_vocab_size,
                          device=config.gpu_id
                          )
 
-    vocab_size = len(dataset.text.vocab)
-    n_classes = len(dataset.label.vocab)
+    print('|train| =', len(loaders.train_loader.dataset), '|valid| =', len(loaders.valid_loader.dataset))
+    
+    vocab_size = len(loaders.text.vocab)
+    n_classes = len(loaders.label.vocab)
     print('|vocab| =', vocab_size, '|classes| =', n_classes)
 
     if config.rnn is False and config.cnn is False:
@@ -85,8 +85,8 @@ def main(config):
             model,
             crit,
             optimizer,
-            dataset.train_iter,
-            dataset.valid_iter
+            loaders.train_loader,
+            loaders.valid_loader
         )
     if config.cnn:
         # Declare model and loss.
@@ -111,15 +111,15 @@ def main(config):
             model,
             crit,
             optimizer,
-            dataset.train_iter,
-            dataset.valid_iter
+            loaders.train_loader,
+            loaders.valid_loader
         )
 
     torch.save({'rnn': rnn_model.state_dict() if config.rnn else None,
                 'cnn': cnn_model.state_dict() if config.cnn else None,
                 'config': config,
-                'vocab': dataset.text.vocab,
-                'classes': dataset.label.vocab
+                'vocab': loaders.text.vocab,
+                'classes': loaders.label.vocab
                 }, config.model_fn)
 
 if __name__ == '__main__':
