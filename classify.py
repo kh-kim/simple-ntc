@@ -43,15 +43,18 @@ def define_field():
     To avoid use DataLoader class, just declare dummy fields. 
     With those fields, we can retore mapping table between words and indice.
     '''
-    return (data.Field(use_vocab=True, 
-                       batch_first=True, 
-                       include_lengths=False
-                       ),
-            data.Field(sequential=False, 
-                       use_vocab=True,
-                       unk_token=None
-                       )
-            )
+    return (
+        data.Field(
+            use_vocab=True,
+            batch_first=True,
+            include_lengths=False,
+        ),
+        data.Field(
+            sequential=False,
+            use_vocab=True,
+            unk_token=None,
+        )
+    )
 
 
 def main(config):
@@ -77,32 +80,35 @@ def main(config):
 
     with torch.no_grad():
         # Converts string to list of index.
-        x = text_field.numericalize(text_field.pad(lines),
-                                    device='cuda:%d' % config.gpu_id if config.gpu_id >= 0 else 'cpu'
-                                    )
+        x = text_field.numericalize(
+            text_field.pad(lines),
+            device='cuda:%d' % config.gpu_id if config.gpu_id >= 0 else 'cpu',
+        )
 
         ensemble = []
         if rnn_best is not None:
             # Declare model and load pre-trained weights.
-            model = RNNClassifier(input_size=vocab_size,
-                                  word_vec_size=train_config.word_vec_size,
-                                  hidden_size=train_config.hidden_size,
-                                  n_classes=n_classes,
-                                  n_layers=train_config.n_layers,
-                                  dropout_p=train_config.dropout
-                                  )
+            model = RNNClassifier(
+                input_size=vocab_size,
+                word_vec_size=train_config.word_vec_size,
+                hidden_size=train_config.hidden_size,
+                n_classes=n_classes,
+                n_layers=train_config.n_layers,
+                dropout_p=train_config.dropout,
+            )
             model.load_state_dict(rnn_best)
             ensemble += [model]
         if cnn_best is not None:
             # Declare model and load pre-trained weights.
-            model = CNNClassifier(input_size=vocab_size,
-                                  word_vec_size=train_config.word_vec_size,
-                                  n_classes=n_classes,
-                                  use_batch_norm=train_config.use_batch_norm,
-                                  dropout_p=train_config.dropout,
-                                  window_sizes=train_config.window_sizes,
-                                  n_filters=train_config.n_filters
-                                  )
+            model = CNNClassifier(
+                input_size=vocab_size,
+                word_vec_size=train_config.word_vec_size,
+                n_classes=n_classes,
+                use_batch_norm=train_config.use_batch_norm,
+                dropout_p=train_config.dropout,
+                window_sizes=train_config.window_sizes,
+                n_filters=train_config.n_filters,
+            )
             model.load_state_dict(cnn_best)
             ensemble += [model]
 
@@ -131,9 +137,10 @@ def main(config):
         probs, indice = y_hats.cpu().topk(config.top_k)
 
         for i in range(len(lines)):
-            sys.stdout.write('%s\t%s\n' % (' '.join([classes.itos[indice[i][j]] for j in range(config.top_k)]), 
-                             ' '.join(lines[i]))
-                             )
+            sys.stdout.write('%s\t%s\n' % (
+                ' '.join([classes.itos[indice[i][j]] for j in range(config.top_k)]), 
+                ' '.join(lines[i]))
+            )
 
 
 if __name__ == '__main__':

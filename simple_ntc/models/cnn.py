@@ -4,15 +4,16 @@ import torch.nn as nn
 
 class CNNClassifier(nn.Module):
 
-    def __init__(self,
-                 input_size,
-                 word_vec_size,
-                 n_classes,
-                 use_batch_norm=False,
-                 dropout_p=.5,
-                 window_sizes=[3, 4, 5],
-                 n_filters=[100, 100, 100]
-                 ):
+    def __init__(
+        self,
+        input_size,
+        word_vec_size,
+        n_classes,
+        use_batch_norm=False,
+        dropout_p=.5,
+        window_sizes=[3, 4, 5],
+        n_filters=[100, 100, 100],
+    ):
         self.input_size = input_size  # vocabulary size
         self.word_vec_size = word_vec_size
         self.n_classes = n_classes
@@ -26,12 +27,13 @@ class CNNClassifier(nn.Module):
         super().__init__()
 
         self.emb = nn.Embedding(input_size, word_vec_size)
+        # Use nn.ModuleList to register each sub-modules.
         self.feature_extractors = nn.ModuleList()
         for window_size, n_filter in zip(window_sizes, n_filters):
             self.feature_extractors.append(
                 nn.Sequential(
                     nn.Conv2d(
-                        in_channels=1,
+                        in_channels=1, # We only use one embedding layer.
                         out_channels=n_filter,
                         kernel_size=(window_size, word_vec_size),
                     ),
@@ -73,9 +75,10 @@ class CNNClassifier(nn.Module):
             # because it depends on the length of the sentence.
             # Therefore, we use instant function using 'nn.functional' package.
             # This is the beauty of PyTorch. :)
-            cnn_out = nn.functional.max_pool1d(input=cnn_out.squeeze(-1),
-                                               kernel_size=cnn_out.size(-2)
-                                               ).squeeze(-1)
+            cnn_out = nn.functional.max_pool1d(
+                input=cnn_out.squeeze(-1),
+                kernel_size=cnn_out.size(-2)
+            ).squeeze(-1)
             # |cnn_out| = (batch_size, n_filter)
             cnn_outs += [cnn_out]
         # Merge output tensors from each convolution layer.

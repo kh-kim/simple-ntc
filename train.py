@@ -56,7 +56,10 @@ def main(config):
                          device=config.gpu_id
                          )
 
-    print('|train| =', len(loaders.train_loader.dataset), '|valid| =', len(loaders.valid_loader.dataset))
+    print(
+        '|train| =', len(loaders.train_loader.dataset),
+        '|valid| =', len(loaders.valid_loader.dataset),
+    )
     
     vocab_size = len(loaders.text.vocab)
     n_classes = len(loaders.label.vocab)
@@ -67,13 +70,14 @@ def main(config):
 
     if config.rnn:
         # Declare model and loss.
-        model = RNNClassifier(input_size=vocab_size,
-                              word_vec_size=config.word_vec_size,
-                              hidden_size=config.hidden_size,
-                              n_classes=n_classes,
-                              n_layers=config.n_layers,
-                              dropout_p=config.dropout
-                              )
+        model = RNNClassifier(
+            input_size=vocab_size,
+            word_vec_size=config.word_vec_size,
+            hidden_size=config.hidden_size,
+            n_classes=n_classes,
+            n_layers=config.n_layers,
+            dropout_p=config.dropout,
+        )
         optimizer = optim.Adam(model.parameters())
         crit = nn.NLLLoss()
         print(model)
@@ -92,14 +96,15 @@ def main(config):
         )
     if config.cnn:
         # Declare model and loss.
-        model = CNNClassifier(input_size=vocab_size,
-                              word_vec_size=config.word_vec_size,
-                              n_classes=n_classes,
-                              use_batch_norm=config.use_batch_norm,
-                              dropout_p=config.dropout,
-                              window_sizes=config.window_sizes,
-                              n_filters=config.n_filters
-                              )
+        model = CNNClassifier(
+            input_size=vocab_size,
+            word_vec_size=config.word_vec_size,
+            n_classes=n_classes,
+            use_batch_norm=config.use_batch_norm,
+            dropout_p=config.dropout,
+            window_sizes=config.window_sizes,
+            n_filters=config.n_filters,
+        )
         optimizer = optim.Adam(model.parameters())
         crit = nn.NLLLoss()
         print(model)
@@ -117,12 +122,13 @@ def main(config):
             loaders.valid_loader
         )
 
-    torch.save({'rnn': rnn_model.state_dict() if config.rnn else None,
-                'cnn': cnn_model.state_dict() if config.cnn else None,
-                'config': config,
-                'vocab': loaders.text.vocab,
-                'classes': loaders.label.vocab
-                }, config.model_fn)
+    torch.save({
+        'rnn': rnn_model.state_dict() if config.rnn else None,
+        'cnn': cnn_model.state_dict() if config.cnn else None,
+        'config': config,
+        'vocab': loaders.text.vocab,
+        'classes': loaders.label.vocab,
+    }, config.model_fn)
 
 if __name__ == '__main__':
     config = define_argparser()
