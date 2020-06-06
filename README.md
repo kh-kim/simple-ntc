@@ -71,14 +71,15 @@ Note that you need to specify an architecture for training. You can select both 
 
 ```bash
 $ python train.py -h
-usage: train.py [-h] --model_fn MODEL_FN --train TRAIN --valid VALID
-                [--gpu_id GPU_ID] [--verbose VERBOSE]
-                [--min_vocab_freq MIN_VOCAB_FREQ]
+usage: train.py [-h] --model_fn MODEL_FN --train_fn TRAIN_FN [--gpu_id GPU_ID]
+                [--verbose VERBOSE] [--min_vocab_freq MIN_VOCAB_FREQ]
                 [--max_vocab_size MAX_VOCAB_SIZE] [--batch_size BATCH_SIZE]
                 [--n_epochs N_EPOCHS] [--word_vec_size WORD_VEC_SIZE]
-                [--dropout DROPOUT] [--rnn] [--hidden_size HIDDEN_SIZE]
-                [--n_layers N_LAYERS] [--cnn] [--use_batch_norm]
-                [--window_sizes WINDOW_SIZES] [--n_filters N_FILTERS]
+                [--dropout DROPOUT] [--max_length MAX_LENGTH] [--rnn]
+                [--hidden_size HIDDEN_SIZE] [--n_layers N_LAYERS] [--cnn]
+                [--use_batch_norm]
+                [--window_sizes WINDOW_SIZES WINDOW_SIZES WINDOW_SIZES]
+                [--n_filters N_FILTERS N_FILTERS N_FILTERS]
 ```
 
 or you can check default hyper-parameter from train.py.
@@ -145,13 +146,25 @@ RNNClassifier(
 
 ```bash
 CNNClassifier(
-  (emb): Embedding(35532, 128)
-  (cnn-3-100): Conv2d(1, 100, kernel_size=(3, 128), stride=(1, 1))
-  (cnn-4-100): Conv2d(1, 100, kernel_size=(4, 128), stride=(1, 1))
-  (cnn-5-100): Conv2d(1, 100, kernel_size=(5, 128), stride=(1, 1))
-  (relu): ReLU()
-  (dropout): Dropout(p=0.3)
-  (generator): Linear(in_features=300, out_features=15, bias=True)
+  (emb): Embedding(35532, 256)
+  (feature_extractors): ModuleList(
+    (0): Sequential(
+      (0): Conv2d(1, 100, kernel_size=(3, 256), stride=(1, 1))
+      (1): ReLU()
+      (2): Dropout(p=0.3, inplace=False)
+    )
+    (1): Sequential(
+      (0): Conv2d(1, 100, kernel_size=(4, 256), stride=(1, 1))
+      (1): ReLU()
+      (2): Dropout(p=0.3, inplace=False)
+    )
+    (2): Sequential(
+      (0): Conv2d(1, 100, kernel_size=(5, 256), stride=(1, 1))
+      (1): ReLU()
+      (2): Dropout(p=0.3, inplace=False)
+    )
+  )
+  (generator): Linear(in_features=300, out_features=2, bias=True)
   (activation): LogSoftmax()
 )
 ```
