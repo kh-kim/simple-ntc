@@ -46,6 +46,8 @@ class MyEngine(Engine):
         x, y = mini_batch.text, mini_batch.label
         x, y = x.to(engine.device), y.to(engine.device)
 
+        x = x[:, :engine.config.max_length]
+
         # Take feed-forward
         y_hat = engine.model(x)
 
@@ -79,6 +81,8 @@ class MyEngine(Engine):
         with torch.no_grad():
             x, y = mini_batch.text, mini_batch.label
             x, y = x.to(engine.device), y.to(engine.device)
+
+            x = x[:, :engine.config.max_length]
 
             y_hat = engine.model(x)
 
