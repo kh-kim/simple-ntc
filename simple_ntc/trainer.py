@@ -3,9 +3,6 @@ from copy import deepcopy
 import numpy as np
 
 import torch
-import torch.nn.functional as F
-import torch.optim as optim
-import torch.nn.utils as torch_utils
 
 from ignite.engine import Engine
 from ignite.engine import Events
