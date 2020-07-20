@@ -131,6 +131,7 @@ def main(config):
         'classes': loaders.label.vocab,
     }, config.model_fn)
 
+
 if __name__ == '__main__':
     config = define_argparser()
     main(config)
