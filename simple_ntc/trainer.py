@@ -173,7 +173,7 @@ class Trainer():
     def train(
         self,
         model, crit, optimizer,
-        train_loader, valid_loader
+        train_loader, valid_loader,
     ):
         train_engine = MyEngine(
             MyEngine.train,
