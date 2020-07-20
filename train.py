@@ -49,7 +49,8 @@ def define_argparser():
 
 
 def main(config):
-    loaders = DataLoader(train_fn=config.train_fn,
+    loaders = DataLoader(
+        train_fn=config.train_fn,
                          batch_size=config.batch_size,
                          min_freq=config.min_vocab_freq,
                          max_vocab=config.max_vocab_size,
