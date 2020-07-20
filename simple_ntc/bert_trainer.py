@@ -65,9 +65,9 @@ class EngineForBert(MyEngine):
         engine.model.eval()
 
         with torch.no_grad():
-            x, y = mini_batch['input_ids'], mini_batch['targets']
+            x, y = mini_batch['input_ids'], mini_batch['labels']
             x, y = x.to(engine.device), y.to(engine.device)
-            mask = mini_batch['attnetion_mask']
+            mask = mini_batch['attention_mask']
             mask = mask.to(engine.device)
 
             x = x[:, :engine.config.max_length]
