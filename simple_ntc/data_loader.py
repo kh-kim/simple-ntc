@@ -1,3 +1,6 @@
+import torch
+from torch.utils.data import Dataset
+
 from torchtext import data
 
 
@@ -71,3 +74,37 @@ class DataLoader(object):
         # It is making mapping table between words and indice.
         self.label.build_vocab(train)
         self.text.build_vocab(train, max_size=max_vocab, min_freq=min_freq)
+
+
+class BertDataset(Dataset):
+
+    def __init__(self, texts, labels, tokenizer, max_len):
+        self.texts = texts
+        self.labels = labels
+        self.tokenizer = tokenizer
+        self.max_len = max_len
+    
+    def __len__(self):
+        return len(self.texts)
+    
+    def __getitem__(self, item):
+        text = str(self.texts[item])
+        label = self.labels[item]
+
+        encoding = self.tokenizer.encode_plus(
+            text,
+            add_special_tokens=True,
+            max_length=self.max_len,
+            return_token_type_ids=False,
+            pad_to_max_length=True,
+            return_attention_mask=True,
+            return_tensors='pt',
+            truncation=True,
+        )
+
+        return {
+            'text_text': text,
+            'input_ids': encoding['input_ids'].flatten(),
+            'attention_mask': encoding['attention_mask'].flatten(),
+            'labels': torch.tensor(label, dtype=torch.long),
+        }
