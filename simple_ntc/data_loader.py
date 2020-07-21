@@ -17,7 +17,7 @@ class DataLoader(object):
         max_vocab=999999,
         min_freq=1,
         use_eos=False,
-        shuffle=True
+        shuffle=True,
     ):
         '''
         DataLoader initialization.
@@ -42,7 +42,7 @@ class DataLoader(object):
             use_vocab=True,
             batch_first=True,
             include_lengths=False,
-            eos_token='<EOS>' if use_eos else None
+            eos_token='<EOS>' if use_eos else None,
         )
 
         # Those defined two columns will be delimited by TAB.
@@ -76,13 +76,39 @@ class DataLoader(object):
         self.text.build_vocab(train, max_size=max_vocab, min_freq=min_freq)
 
 
+class TokenizerWrapper():
+
+    def __init__(self, tokenizer, config):
+        self.tokenizer = tokenizer
+        self.config = config
+
+    def collate(self, samples):
+        text = [s['text'] for s in samples]
+        label = [s['label'] for s in samples]
+
+        encoding = self.tokenizer(
+            text,
+            padding=True,
+            truncation=True,
+            return_tensors="pt",
+            max_length=self.config.max_length
+        )
+
+        return {
+            'text_text': text,
+            'input_ids': encoding['input_ids'],
+            'attention_mask': encoding['attention_mask'],
+            'labels': torch.tensor(label, dtype=torch.long),
+        }
+
+
 class BertDataset(Dataset):
 
-    def __init__(self, texts, labels, tokenizer, max_len):
+    def __init__(self, texts, labels, tokenizer, max_length):
         self.texts = texts
         self.labels = labels
         self.tokenizer = tokenizer
-        self.max_len = max_len
+        self.max_length = max_length
     
     def __len__(self):
         return len(self.texts)
@@ -91,20 +117,7 @@ class BertDataset(Dataset):
         text = str(self.texts[item])
         label = self.labels[item]
 
-        encoding = self.tokenizer.encode_plus(
-            text,
-            add_special_tokens=True,
-            max_length=self.max_len,
-            return_token_type_ids=False,
-            pad_to_max_length=True,
-            return_attention_mask=True,
-            return_tensors='pt',
-            truncation=True,
-        )
-
         return {
-            'text_text': text,
-            'input_ids': encoding['input_ids'].flatten(),
-            'attention_mask': encoding['attention_mask'].flatten(),
-            'labels': torch.tensor(label, dtype=torch.long),
+            'text': text,
+            'label': label,
         }

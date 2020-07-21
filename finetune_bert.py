@@ -12,7 +12,7 @@ from transformers import AdamW
 from transformers import get_linear_schedule_with_warmup
 
 from simple_ntc.bert_trainer import BertTrainer as Trainer
-from simple_ntc.data_loader import BertDataset
+from simple_ntc.data_loader import BertDataset, TokenizerWrapper
 
 
 def define_argparser():
@@ -72,11 +72,13 @@ def get_loaders(fn, tokenizer):
     train_loader = DataLoader(
         BertDataset(texts[:idx], labels[:idx], tokenizer, config.max_length),
         batch_size=config.batch_size,
-        shuffle=True
+        shuffle=True,
+        collate_fn=TokenizerWrapper(tokenizer, config).collate,
     )
     valid_loader = DataLoader(
         BertDataset(texts[idx:], labels[idx:], tokenizer, config.max_length),
-        batch_size=config.batch_size
+        batch_size=config.batch_size,
+        collate_fn=TokenizerWrapper(tokenizer, config).collate,
     )
 
     return train_loader, valid_loader, label_to_index
