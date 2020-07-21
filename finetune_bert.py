@@ -46,6 +46,9 @@ def read_text(fn):
         labels, texts = [], []
         for line in lines:
             if line.strip() != '':
+                # The file should have tab delimited two columns.
+                # First column indicates label field,
+                # and second column indicates text field.
                 label, text = line.strip().split('\t')
                 labels += [label]
                 texts += [text]
@@ -54,21 +57,26 @@ def read_text(fn):
 
 
 def get_loaders(fn, tokenizer):
+    # Get list of labels and list of texts.
     labels, texts = read_text(fn)
 
+    # Generate label to index map.
     unique_labels = list(set(labels))
     label_to_index = {}
     for i, label in enumerate(unique_labels):
         label_to_index[label] = i
 
+    # Convert label text to integer value.
     labels = list(map(label_to_index.get, labels))
 
+    # Shuffle before split into train and validation set.
     shuffled = list(zip(texts, labels))
     random.shuffle(shuffled)
     texts = [e[0] for e in shuffled]
     labels = [e[1] for e in shuffled]
     idx = int(len(texts) * .8)
 
+    # Get dataloaders using given tokenizer as collate_fn.
     train_loader = DataLoader(
         BertDataset(texts[:idx], labels[:idx]),
         batch_size=config.batch_size,
@@ -85,7 +93,9 @@ def get_loaders(fn, tokenizer):
 
 
 def main(config):
+    # Get pretrained tokenizer.
     tokenizer = AutoTokenizer.from_pretrained(config.bert_name)
+    # Get dataloaders using tokenizer from untokenized corpus.
     train_loader, valid_loader, label_to_index = get_loaders(config.train_fn, tokenizer)
 
     print(
@@ -93,6 +103,7 @@ def main(config):
         '|valid| =', len(valid_loader) * config.batch_size,
     )
 
+    # Get pretrained model with specified softmax layer.
     model = BertForSequenceClassification.from_pretrained(
         config.bert_name,
         num_labels=len(label_to_index)
@@ -115,6 +126,8 @@ def main(config):
         lr=config.lr,
         eps=config.adam_epsilon
     )
+    # By default, model has softmax layer, not log-softmax layer.
+    # Therefore, we need CrossEntropyLoss, not NLLLoss.
     crit = nn.CrossEntropyLoss()
 
     n_total_iterations = len(train_loader) * config.n_epochs
@@ -129,6 +142,7 @@ def main(config):
         model.cuda(config.gpu_id)
         crit.cuda(config.gpu_id)
 
+    # Start train.
     trainer = Trainer(config)
     model = trainer.train(
         model,
