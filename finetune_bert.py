@@ -141,7 +141,7 @@ def main(config):
         'bert': model.state_dict(),
         'config': config,
         'vocab': None,
-        'classes': None,
+        'classes': label_to_index,
         'tokenizer': tokenizer,
     }, config.model_fn)
 
