@@ -27,7 +27,10 @@ def define_argparser():
 
     p.add_argument('--batch_size', type=int, default=32)
     p.add_argument('--n_epochs', type=int, default=10)
+
+    p.add_argument('--lr', type=float, default=5e-5)
     p.add_argument('--warmup_ratio', type=float, default=.1)
+    p.add_argument('--adam_epsilon', type=float, default=1e-8)
 
     p.add_argument('--max_length', type=int, default=100)
 
@@ -105,7 +108,11 @@ def main(config):
         }
     ]
 
-    optimizer = optim.Adam(optimizer_grouped_parameters)
+    optimizer = optim.AdamW(
+        optimizer_grouped_parameters,
+        lr=config.lr,
+        eps=config.adam_epsilon
+    )
     crit = nn.CrossEntropyLoss()
 
     t_total = len(train_loader) * config.n_epochs
