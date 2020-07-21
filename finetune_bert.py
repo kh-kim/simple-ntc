@@ -70,15 +70,15 @@ def get_loaders(fn, tokenizer):
     idx = int(len(texts) * .8)
 
     train_loader = DataLoader(
-        BertDataset(texts[:idx], labels[:idx], tokenizer, config.max_length),
+        BertDataset(texts[:idx], labels[:idx]),
         batch_size=config.batch_size,
         shuffle=True,
-        collate_fn=TokenizerWrapper(tokenizer, config).collate,
+        collate_fn=TokenizerWrapper(tokenizer, config.max_length).collate,
     )
     valid_loader = DataLoader(
-        BertDataset(texts[idx:], labels[idx:], tokenizer, config.max_length),
+        BertDataset(texts[idx:], labels[idx:]),
         batch_size=config.batch_size,
-        collate_fn=TokenizerWrapper(tokenizer, config).collate,
+        collate_fn=TokenizerWrapper(tokenizer, config.max_length).collate,
     )
 
     return train_loader, valid_loader, label_to_index
@@ -117,9 +117,13 @@ def main(config):
     )
     crit = nn.CrossEntropyLoss()
 
-    t_total = len(train_loader) * config.n_epochs
-    warmup_step = int(t_total * config.warmup_ratio)
-    scheduler = get_linear_schedule_with_warmup(optimizer, warmup_step, t_total)
+    n_total_iterations = len(train_loader) * config.n_epochs
+    n_warmup_steps = int(n_total_iterations * config.warmup_ratio)
+    scheduler = get_linear_schedule_with_warmup(
+        optimizer,
+        n_warmup_steps,
+        n_total_iterations
+    )
 
     if config.gpu_id >= 0:
         model.cuda(config.gpu_id)
