@@ -12,6 +12,10 @@ In addition, this repo is for [lecture](https://www.fastcampus.co.kr/data_camp_n
 - TorchText 0.4 or higher
 - Tokenized corpus (e.g. [Moses](https://www.nltk.org/_modules/nltk/tokenize/moses.html), Mecab, [Jieba](https://github.com/fxsjy/jieba))
 
+if you want to use BERT finetuning, you may also need,
+
+- Huggingface
+
 ## Usage
 
 ### Preparation
@@ -21,12 +25,17 @@ In addition, this repo is for [lecture](https://www.fastcampus.co.kr/data_camp_n
 The input file would have a format with two columns, class and sentence. Those columns are delimited by tab. Class does not need to be a number, but a word (without white-space). Below is example corpus to explain.
 
 ```bash
-$ cat ./data/raw_corpus.txt | shuf | head -n 5
-cm_mac	맥에 아이폰 연결 후 아이폰 내부자료 파인더에서 폴더로 볼 수 없나요? : 클리앙
-cm_ku	넵튠 번들 기념 느와르.jpg : 클리앙
-cm_mac	패러랠즈로 디아를 하는건 좀 아니려나요? : 클리앙
-cm_ku	덕당분들 폰에서 덕내나요 ㄸㄸㄸㄷ : 클리앙
-cm_oversea	혹시 영어 영작에 도움좀 부탁드립니다. : 클리앙
+$ cat ./data/raw_corpus.txt | shuf | head
+positive	나름 괜찬항요 막 엄청 좋은건 아님 그냥 그럭저럭임... 아직 까지 인생 디퓨져는 못찾은느낌
+negative	재질은플라스틱부분이많고요...금방깨질거같아요..당장 물은나오게해야하기에..그냥설치했어요..지금도 조금은후회중.....
+positive	평소 신던 신발보다 크긴하지만 운동화라 끈 조절해서 신으려구요 신발 이쁘고 편하네요
+positive	두개사서 직장에 구비해두고 먹고있어요 양 많아서 오래쓸듯
+positive	생일선물로 샀는데 받으시는 분도 만족하시구 배송도 빨라서 좋았네요
+positive	아이가 너무 좋아합니다 크롱도 좋아라하지만 루피를 더..
+negative	배송은 기다릴수 있었는데 8개나 주문했는데 샘플을 너무 적게보내주시네요ㅡㅡ;;
+positive	너무귀여워요~~ㅎ아직사용은 못해? f지만 이젠 모기땜에 잠설치는일은 ? j겟죠
+positive	13개월 아가 제일좋은 간식이네요
+positive	지인추천으로 샀어요~ 싸고 가성비 좋다해서 낮기저귀로 써보려구요~
 ```
 
 #### Tokenization (Optional)
@@ -46,18 +55,18 @@ After correct formatting and tokenization, you need to split the corpus to train
 
 ```bash
 $ wc -l ./data/corpus.txt
-261664 ./data/corpus.txt
+302680 ./data/corpus.txt
 ```
 
 As you can see, we have more than 260k samples in corpus.
 
 ```bash
 $ cat ./data/corpus.txt | shuf > ./data/corpus.shuf.txt
-$ head -n 15000 ./data/corpus.shuf.txt > ./data/corpus.valid.txt
-$ tail -n 246664 ./data/corpus.shuf.txt > ./data/corpus.train.txt
+$ head -n 62680 ./data/corpus.shuf.txt > ./data/corpus.test.txt
+$ tail -n 240000 ./data/corpus.shuf.txt > ./data/corpus.train.txt
 ```
 
-Now, you have 246,664 samples for train-set, and 15,000 samples for valid-set. Note that you can use 'rl' command, instead of 'shuf', if you are using MacOS.
+Now, you have 240,000 samples for train-set, and 62,680 samples for valid-set. Note that you can use 'rl' command, instead of 'shuf', if you are using MacOS.
 
 ### Train
 
@@ -70,7 +79,7 @@ python train.py --model_fn ./models/model.pth --train ./data/corpus.train.txt --
 Note that you need to specify an architecture for training. You can select both rnn and cnn for ensemble method. Also, you can select the device to use for training. In order to use CPU only, you can put -1 for '--gpu_id' argument, which is default value.
 
 ```bash
-$ python train.py -h
+$ python ./train.py --help
 usage: train.py [-h] --model_fn MODEL_FN --train_fn TRAIN_FN [--gpu_id GPU_ID]
                 [--verbose VERBOSE] [--min_vocab_freq MIN_VOCAB_FREQ]
                 [--max_vocab_size MAX_VOCAB_SIZE] [--batch_size BATCH_SIZE]
@@ -78,8 +87,8 @@ usage: train.py [-h] --model_fn MODEL_FN --train_fn TRAIN_FN [--gpu_id GPU_ID]
                 [--dropout DROPOUT] [--max_length MAX_LENGTH] [--rnn]
                 [--hidden_size HIDDEN_SIZE] [--n_layers N_LAYERS] [--cnn]
                 [--use_batch_norm]
-                [--window_sizes WINDOW_SIZES WINDOW_SIZES WINDOW_SIZES]
-                [--n_filters N_FILTERS N_FILTERS N_FILTERS]
+                [--window_sizes [WINDOW_SIZES [WINDOW_SIZES ...]]]
+                [--n_filters [N_FILTERS [N_FILTERS ...]]]
 ```
 
 or you can check default hyper-parameter from train.py.
@@ -89,17 +98,17 @@ or you can check default hyper-parameter from train.py.
 You can feed standard input as input for inference, like as below. Prediction result consists of two columns(top-k classes and input sentence) with tab delimiter. The result will be shown as standard output.
 
 ```bash
-$ head -n 10 ./data/corpus.valid.txt | awk -F'\t' '{ print $2 }' | python classify.py --model ./models/clien.pth --gpu_id -1 --top_k 3
-cm_andro cm_iphonien cm_mac	갤 노트 잠금 화면 해제 어 플 사용 하 시 나요 ? : 클리앙
-cm_baby cm_car cm_lego	[ 예비 아빠 ] 입당 신고 합니다 : 클리앙
-cm_gym cm_oversea cm_vcoin	11 / 07 운동 일지 : 클리앙
-cm_ku cm_baby cm_car	커플 이 알콩달콩 하 는 거 보 면 뭐 가 좋 습니까 . utb : 클리앙
-cm_iphonien cm_mac cm_car	아이 포니 앙 분 들 께서 는 어떤 사이즈 의 아이 패드 를 더 선호 하 시 나요 ? : 클리앙
-cm_coffee cm_lego cm_bike	잉여 잉여 ~ : 클리앙
-cm_coffee cm_gym cm_lego	드 뎌 오늘 제대로 된 에스프레소 한잔 마셨 습니다 ! ! ^^ : 클리앙
-cm_coffee cm_oversea cm_ku	동네 에 있 는 커피 집 에서 먹 는 커피 빙수 . .. : 클리앙
-cm_car cm_oversea cm_bike	땡볕 에 두 시간 세차 하 기 : 클리앙
-cm_gym cm_oversea cm_bike	268 . 1 / 22 생 서니 의 말랑말랑 클 핏 일지 ₩ 15 : 클리앙
+$ head ./data/review.sorted.uniq.refined.tok.shuf.test.tsv | awk -F'\t' '{ print $2 }' | python classify.py --model ./models/model.pth --gpu_id -1 --top_k 1
+positive	생각 보다 밝 아요 ㅎㅎ
+negative	쓸 대 가 없 네요
+positive	깔 금 해요 . 가벼워 요 . 설치 가 쉬워요 . 타 사이트 에 비해 가격 도 저렴 하 답니다 .
+positive	크기 나 두께 가 딱 제 가 원 하 던 사이즈 네요 . 책상 의자 가 너무 딱딱 해서 쿠션 감 좋 은 방석 이 필요 하 던 차 에 좋 은 제품 만났 네요 . 냄새 얘기 하 시 는 분 도 더러 있 던데 별로 냄새 안 나 요 .
+positive	빠르 고 괜찬 습니다 .
+positive	유통 기한 도 넉넉 하 고 좋 아요
+positive	좋 은 가격 에 좋 은 상품 잘 쓰 겠 습니다 .
+negative	사이트 에서 늘 생리대 사 서 쓰 는데 오늘 처럼 이렇게 비닐 에 포장 되 어 받 아 본 건 처음 입니다 . 위생 용품 이 고 자체 도 비닐 포장 이 건만 소형 박스 에 라도 넣 어 보내 주 시 지 . ..
+negative	연결 부분 이 많이 티 가 납니다 . 재질 구김 도 좀 있 습니다 .
+positive	애기 태열 때문 에 구매 해서 잘 쓰 고 있 습니다 .
 ```
 
 Also, you can see the arguments, and see the default values on classify.py.
@@ -112,34 +121,13 @@ usage: classify.py [-h] --model_fn MODEL [--gpu_id GPU_ID]
 
 ## Evaluation
 
-I took an evaluation with my own corpus, which is crawled from [clien](https://www.clien.net/). The task is classify the correct category of the sentence. There are 15 categories, like as below.
-
-|No|Class Name|#Samples|Topic|
-|-|-|-|-|
-|1|cm_andro|20,000|Android development|
-|2|cm_baby|15,597|Raising baby|
-|3|cm_bike|20,000|Bike hobby|
-|4|cm_car|20,000|Car hobby|
-|5|cm_coffee|19,390|Coffee hobby|
-|6|cm_gym|20,000|Working out|
-|7|cm_havehome|13,062|About having(or rent) home|
-|8|cm_iphonien|20,000|About iPhone|
-|9|cm_ku|20,000|About anime|
-|10|cm_lego|20,000|Lego hobby|
-|11|cm_mac|20,000|About Macintosh|
-|12|cm_nas|11,206|About NAS(Network Attached Storage)|
-|13|cm_oversea|10,381|About living in oversea|
-|14|cm_stock|12,028|About stock trading|
-|15|cm_vcoin|20,000|About crypto-currency trading|
-||Total|261,664||
-
-I split the corpus to make train-set and valid-set. 245,000 lines are sampled for train-set and 16,664 samples for valid-set. Architecture snapshots are like as below. You may increase the performance with hyper-parameter optimization.
+I split the corpus to make train-set and valid-set. 240,000 lines are sampled for train-set and 62,680 samples for valid-set. Architecture snapshots are like as below. You may increase the performance with hyper-parameter optimization.
 
 ```bash
 RNNClassifier(
   (emb): Embedding(35532, 128)
   (rnn): LSTM(128, 256, num_layers=4, batch_first=True, dropout=0.3, bidirectional=True)
-  (generator): Linear(in_features=512, out_features=15, bias=True)
+  (generator): Linear(in_features=512, out_features=2, bias=True)
   (activation): LogSoftmax()
 )
 ```
@@ -169,33 +157,12 @@ CNNClassifier(
 )
 ```
 
-Following table shows that the evaluation result of each architecture. The size of validation set is 16,664. You can see that the ensemble is slightly better than others.
-
-|Architecture|Valid Loss|Valid Accuracy|
-|-|-|-|
-|Bi-LSTM|7.9818e-01|0.7666|
-|CNN|8.4225e-01|0.7497|
-|Bi-LSTM + CNN||0.7679|
-
-Below is confusion matrix of validation-set.
-
-||oversea|vcoin|stock|havehome|lego|ku|nas|baby|iphonien|coffee|mac|andro|car|bike|gym|
-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|-|
-|oversea|293|3|8|6|14|7|2|17|12|6|9|10|23|10|5|
-|vcoin|9|848|38|2|6|4|0|5|7|3|8|3|8|9|8|
-|stock|8|27|447|14|3|7|2|1|2|5|0|3|10|6|4|
-|havehome|7|4|21|767|9|2|0|7|1|6|1|1|11|4|5|
-|lego|34|37|23|12|899|107|8|90|41|129|41|28|63|149|114|
-|ku|8|6|4|0|18|856|2|19|21|23|8|8|8|17|20|
-|nas|12|7|4|2|2|16|541|2|19|7|32|22|11|10|2|
-|baby|9|5|2|7|16|6|0|923|2|10|2|6|19|11|17|
-|iphonien|25|11|4|1|10|18|9|6|871|7|66|101|22|18|10|
-|coffee|18|21|13|17|64|33|6|65|20|1,038|16|6|34|73|59|
-|mac|22|4|7|8|23|24|25|19|88|27|845|47|18|27|18|
-|andro|17|4|11|2|13|35|3|7|139|10|42|1,244|17|8|6|
-|car|43|4|8|9|13|14|3|22|15|17|8|10|1,189|51|16|
-|bike|10|8|7|4|27|33|5|32|12|25|10|10|63|1,099|75|
-|gym|9|3|5|1|16|14|0|26|7|24|7|3|13|50|937|
+|Architecture|Test Accuracy|
+|-|-|
+|Bi-LSTM|0.9035|
+|CNN|0.9090|
+|Bi-LSTM + CNN|0.9142|
+|KcBERT|0.9598|
 
 ## Author
 
@@ -207,4 +174,6 @@ Below is confusion matrix of validation-set.
 
 ## Reference
 
-- [[Kim 2014](http://arxiv.org/abs/1408.5882)] Yoon Kim. 2014. Convolutional neural networks for sentence classification. arXiv preprint arXiv:1408.5882.
+- Kim, Convolutional neural networks for sentence classification, EMNLP, 2014
+- Devlin et al., BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding, ACL, 2019
+- [Lee, KcBERT: Korean comments BERT, GitHub, 2020](https://github.com/Beomi/KcBERT)
