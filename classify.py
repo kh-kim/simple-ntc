@@ -139,8 +139,8 @@ def main(config):
         for i in range(len(lines)):
             sys.stdout.write('%s\t%s\n' % (
                 ' '.join([classes.itos[indice[i][j]] for j in range(config.top_k)]), 
-                ' '.join(lines[i]))
-            )
+                ' '.join(lines[i])
+            ))
 
 
 if __name__ == '__main__':
