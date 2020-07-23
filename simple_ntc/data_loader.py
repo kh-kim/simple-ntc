@@ -1,3 +1,6 @@
+import torch
+from torch.utils.data import Dataset
+
 from torchtext import data
 
 
@@ -14,7 +17,7 @@ class DataLoader(object):
         max_vocab=999999,
         min_freq=1,
         use_eos=False,
-        shuffle=True
+        shuffle=True,
     ):
         '''
         DataLoader initialization.
@@ -39,7 +42,7 @@ class DataLoader(object):
             use_vocab=True,
             batch_first=True,
             include_lengths=False,
-            eos_token='<EOS>' if use_eos else None
+            eos_token='<EOS>' if use_eos else None,
         )
 
         # Those defined two columns will be delimited by TAB.
@@ -71,3 +74,48 @@ class DataLoader(object):
         # It is making mapping table between words and indice.
         self.label.build_vocab(train)
         self.text.build_vocab(train, max_size=max_vocab, min_freq=min_freq)
+
+
+class TokenizerWrapper():
+
+    def __init__(self, tokenizer, max_length):
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+
+    def collate(self, samples):
+        texts = [s['text'] for s in samples]
+        labels = [s['label'] for s in samples]
+
+        encoding = self.tokenizer(
+            texts,
+            padding=True,
+            truncation=True,
+            return_tensors="pt",
+            max_length=self.max_length
+        )
+
+        return {
+            'text': texts,
+            'input_ids': encoding['input_ids'],
+            'attention_mask': encoding['attention_mask'],
+            'labels': torch.tensor(labels, dtype=torch.long),
+        }
+
+
+class BertDataset(Dataset):
+
+    def __init__(self, texts, labels):
+        self.texts = texts
+        self.labels = labels
+    
+    def __len__(self):
+        return len(self.texts)
+    
+    def __getitem__(self, item):
+        text = str(self.texts[item])
+        label = self.labels[item]
+
+        return {
+            'text': text,
+            'label': label,
+        }

@@ -49,12 +49,13 @@ def define_argparser():
 
 
 def main(config):
-    loaders = DataLoader(train_fn=config.train_fn,
-                         batch_size=config.batch_size,
-                         min_freq=config.min_vocab_freq,
-                         max_vocab=config.max_vocab_size,
-                         device=config.gpu_id
-                         )
+    loaders = DataLoader(
+        train_fn=config.train_fn,
+        batch_size=config.batch_size,
+        min_freq=config.min_vocab_freq,
+        max_vocab=config.max_vocab_size,
+        device=config.gpu_id
+    )
 
     print(
         '|train| =', len(loaders.train_loader.dataset),
@@ -129,6 +130,7 @@ def main(config):
         'vocab': loaders.text.vocab,
         'classes': loaders.label.vocab,
     }, config.model_fn)
+
 
 if __name__ == '__main__':
     config = define_argparser()

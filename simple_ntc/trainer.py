@@ -3,9 +3,6 @@ from copy import deepcopy
 import numpy as np
 
 import torch
-import torch.nn.functional as F
-import torch.optim as optim
-import torch.nn.utils as torch_utils
 
 from ignite.engine import Engine
 from ignite.engine import Events
@@ -176,7 +173,7 @@ class Trainer():
     def train(
         self,
         model, crit, optimizer,
-        train_loader, valid_loader
+        train_loader, valid_loader,
     ):
         train_engine = MyEngine(
             MyEngine.train,

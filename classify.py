@@ -19,13 +19,17 @@ def define_argparser():
     p.add_argument('--gpu_id', type=int, default=-1)
     p.add_argument('--batch_size', type=int, default=256)
     p.add_argument('--top_k', type=int, default=1)
+    p.add_argument('--max_length', type=int, default=256)
+    
+    p.add_argument('--drop_rnn', action='store_true')
+    p.add_argument('--drop_cnn', action='store_true')
 
     config = p.parse_args()
 
     return config
 
 
-def read_text():
+def read_text(max_length=256):
     '''
     Read text from standard input for inference.
     '''
@@ -76,17 +80,11 @@ def main(config):
     text_field.vocab = vocab
     label_field.vocab = classes
 
-    lines = read_text()
+    lines = read_text(max_length=config.max_length)
 
     with torch.no_grad():
-        # Converts string to list of index.
-        x = text_field.numericalize(
-            text_field.pad(lines),
-            device='cuda:%d' % config.gpu_id if config.gpu_id >= 0 else 'cpu',
-        )
-
         ensemble = []
-        if rnn_best is not None:
+        if rnn_best is not None and not config.drop_rnn:
             # Declare model and load pre-trained weights.
             model = RNNClassifier(
                 input_size=vocab_size,
@@ -98,7 +96,7 @@ def main(config):
             )
             model.load_state_dict(rnn_best)
             ensemble += [model]
-        if cnn_best is not None:
+        if cnn_best is not None and not config.drop_cnn:
             # Declare model and load pre-trained weights.
             model = CNNClassifier(
                 input_size=vocab_size,
@@ -121,26 +119,34 @@ def main(config):
             model.eval()
 
             y_hat = []
-            for idx in range(0, len(lines), config.batch_size):
-                y_hat += [model(x[idx:idx + config.batch_size])]
+            for idx in range(0, len(lines), config.batch_size):                
+                # Converts string to list of index.
+                x = text_field.numericalize(
+                    text_field.pad(lines[idx:idx + config.batch_size]),
+                    device='cuda:%d' % config.gpu_id if config.gpu_id >= 0 else 'cpu',
+                )
+
+                y_hat += [model(x).cpu()]
             # Concatenate the mini-batch wise result
             y_hat = torch.cat(y_hat, dim=0)
             # |y_hat| = (len(lines), n_classes)
 
             y_hats += [y_hat]
+
+            model.cpu()
         # Merge to one tensor for ensemble result and make probability from log-prob.
         y_hats = torch.stack(y_hats).exp()
         # |y_hats| = (len(ensemble), len(lines), n_classes)
         y_hats = y_hats.sum(dim=0) / len(ensemble) # Get average
         # |y_hats| = (len(lines), n_classes)
 
-        probs, indice = y_hats.cpu().topk(config.top_k)
+        probs, indice = y_hats.topk(config.top_k)
 
         for i in range(len(lines)):
             sys.stdout.write('%s\t%s\n' % (
                 ' '.join([classes.itos[indice[i][j]] for j in range(config.top_k)]), 
-                ' '.join(lines[i]))
-            )
+                ' '.join(lines[i])
+            ))
 
 
 if __name__ == '__main__':
