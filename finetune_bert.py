@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer
 from transformers import BertForSequenceClassification
 from transformers import AdamW
 from transformers import get_linear_schedule_with_warmup
@@ -63,8 +63,10 @@ def get_loaders(fn, tokenizer):
     # Generate label to index map.
     unique_labels = list(set(labels))
     label_to_index = {}
+    index_to_label = {}
     for i, label in enumerate(unique_labels):
         label_to_index[label] = i
+        index_to_label[i] = label
 
     # Convert label text to integer value.
     labels = list(map(label_to_index.get, labels))
@@ -89,14 +91,14 @@ def get_loaders(fn, tokenizer):
         collate_fn=TokenizerWrapper(tokenizer, config.max_length).collate,
     )
 
-    return train_loader, valid_loader, label_to_index
+    return train_loader, valid_loader, index_to_label
 
 
 def main(config):
     # Get pretrained tokenizer.
     tokenizer = AutoTokenizer.from_pretrained(config.bert_name)
     # Get dataloaders using tokenizer from untokenized corpus.
-    train_loader, valid_loader, label_to_index = get_loaders(config.train_fn, tokenizer)
+    train_loader, valid_loader, index_to_label = get_loaders(config.train_fn, tokenizer)
 
     print(
         '|train| =', len(train_loader) * config.batch_size,
@@ -106,7 +108,7 @@ def main(config):
     # Get pretrained model with specified softmax layer.
     model = BertForSequenceClassification.from_pretrained(
         config.bert_name,
-        num_labels=len(label_to_index)
+        num_labels=len(index_to_label)
     )
     # Prepare optimizer and schedule (linear warmup and decay)
     no_decay = ['bias', 'LayerNorm.weight']
@@ -159,7 +161,7 @@ def main(config):
         'bert': model.state_dict(),
         'config': config,
         'vocab': None,
-        'classes': label_to_index,
+        'classes': index_to_label,
         'tokenizer': tokenizer,
     }, config.model_fn)
 
