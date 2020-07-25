@@ -6,7 +6,7 @@ import torch.nn as nn
 from torchtext import data
 
 from transformers import AutoTokenizer
-from transformers import BertForSequenceClassification
+from transformers import AutoModelForSequenceClassification
 
 
 def define_argparser():
@@ -52,9 +52,9 @@ def main(config):
 
     with torch.no_grad():
         # Declare model and load pre-trained weights.
-        tokenizer = AutoTokenizer.from_pretrained(train_config.bert_name)
-        model = BertForSequenceClassification.from_pretrained(
-            train_config.bert_name,
+        tokenizer = AutoTokenizer.from_pretrained(train_config.pretrained_model_name)
+        model = AutoModelForSequenceClassification.from_pretrained(
+            train_config.pretrained_model_name,
             num_labels=len(index_to_label)
         )
         model.load_state_dict(bert_best)
