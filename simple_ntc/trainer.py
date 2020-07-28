@@ -202,11 +202,6 @@ class Trainer():
             Events.EPOCH_COMPLETED, # event
             MyEngine.check_best, # function
         )
-        validation_engine.add_event_handler(
-            Events.EPOCH_COMPLETED, # event
-            MyEngine.save_model, # function
-            train_engine, self.config, # arguments
-        )
 
         train_engine.run(
             train_loader,
