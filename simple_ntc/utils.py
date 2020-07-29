@@ -5,8 +5,7 @@ def get_grad_norm(parameters, norm_type=2):
 
     try:
         for p in parameters:
-            param_norm = p.grad.data.norm(norm_type)
-            total_norm += param_norm ** norm_type
+            total_norm += (p.grad.data**norm_type).sum()
         total_norm = total_norm ** (1. / norm_type)
     except Exception as e:
         print(e)
@@ -19,8 +18,7 @@ def get_parameter_norm(parameters, norm_type=2):
 
     try:
         for p in parameters:
-            param_norm = p.data.norm(norm_type)
-            total_norm += param_norm ** norm_type
+            total_norm += (p.data**norm_type).sum()
         total_norm = total_norm ** (1. / norm_type)
     except Exception as e:
         print(e)
