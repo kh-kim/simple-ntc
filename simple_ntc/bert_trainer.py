@@ -125,11 +125,6 @@ class BertTrainer(Trainer):
             Events.EPOCH_COMPLETED, # event
             EngineForBert.check_best, # function
         )
-        validation_engine.add_event_handler(
-            Events.EPOCH_COMPLETED, # event
-            EngineForBert.save_model, # function
-            train_engine, self.config, # arguments
-        )
 
         train_engine.run(
             train_loader,
