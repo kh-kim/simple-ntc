@@ -37,7 +37,7 @@ def read_text(max_length=256):
 
     for line in sys.stdin:
         if line.strip() != '':
-            lines += [line.strip().split(' ')]
+            lines += [line.strip().split(' ')[:max_length]]
 
     return lines
 

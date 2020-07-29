@@ -7,7 +7,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 
 from transformers import AutoTokenizer
-from transformers import AutoModelForSequenceClassification
+from transformers import BertForSequenceClassification
 from transformers import AdamW
 from transformers import get_linear_schedule_with_warmup
 
@@ -106,7 +106,7 @@ def main(config):
     )
 
     # Get pretrained model with specified softmax layer.
-    model = AutoModelForSequenceClassification.from_pretrained(
+    model = BertForSequenceClassification.from_pretrained(
         config.pretrained_model_name,
         num_labels=len(index_to_label)
     )
