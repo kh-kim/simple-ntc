@@ -128,8 +128,8 @@ def main(config):
         lr=config.lr,
         eps=config.adam_epsilon
     )
-    # By default, model has softmax layer, not log-softmax layer.
-    # Therefore, we need CrossEntropyLoss, not NLLLoss.
+    # By default, model returns a hidden representation before softmax func.
+    # Thus, we need to use CrossEntropyLoss, which combines LogSoftmax and NLLLoss.
     crit = nn.CrossEntropyLoss()
 
     n_total_iterations = len(train_loader) * config.n_epochs

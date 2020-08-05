@@ -3,6 +3,7 @@ import argparse
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torchtext import data
 
 from transformers import AutoTokenizer
@@ -81,7 +82,7 @@ def main(config):
             mask = mask.to(device)
 
             # Take feed-forward
-            y_hat = model(x, attention_mask=mask)[0]
+            y_hat = F.softmax(model(x, attention_mask=mask)[0], dim=-1)
 
             y_hats += [y_hat]
         # Concatenate the mini-batch wise result
