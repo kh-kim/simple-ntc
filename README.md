@@ -7,9 +7,10 @@ In addition, this repo is for [lecture](https://www.fastcampus.co.kr/data_camp_n
 ## Pre-requisite
 
 - Python 3.6 or higher
-- PyTorch 1.1 or higher
+- PyTorch 1.6 or higher
 - PyTorch Ignite
-- TorchText 0.4 or higher
+- TorchText 0.5 or higher
+- [torch-optimizer 0.0.1a15](https://pypi.org/project/torch-optimizer/)
 - Tokenized corpus (e.g. [Moses](https://www.nltk.org/_modules/nltk/tokenize/moses.html), Mecab, [Jieba](https://github.com/fxsjy/jieba))
 
 if you want to use BERT finetuning, you may also need,

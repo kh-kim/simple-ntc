@@ -11,6 +11,8 @@ from transformers import BertForSequenceClassification
 from transformers import AdamW
 from transformers import get_linear_schedule_with_warmup
 
+import torch_optimizer as custom_optim
+
 from simple_ntc.bert_trainer import BertTrainer as Trainer
 from simple_ntc.data_loader import BertDataset, TokenizerWrapper
 
@@ -31,6 +33,7 @@ def define_argparser():
     p.add_argument('--lr', type=float, default=5e-5)
     p.add_argument('--warmup_ratio', type=float, default=.1)
     p.add_argument('--adam_epsilon', type=float, default=1e-8)
+    p.add_argument('--use_radam', action='store_true')
 
     p.add_argument('--max_length', type=int, default=100)
 
@@ -110,24 +113,29 @@ def main(config):
         config.pretrained_model_name,
         num_labels=len(index_to_label)
     )
-    # Prepare optimizer and schedule (linear warmup and decay)
-    no_decay = ['bias', 'LayerNorm.weight']
-    optimizer_grouped_parameters = [
-        {
-            'params': [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)],
-            'weight_decay': 0.01
-        },
-        {
-            'params': [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)],
-            'weight_decay': 0.0
-        }
-    ]
 
-    optimizer = optim.AdamW(
-        optimizer_grouped_parameters,
-        lr=config.lr,
-        eps=config.adam_epsilon
-    )
+    if config.use_radam:
+        optimizer = custom_optim.RAdam(model.parameters(), lr=config.lr)
+    else:
+        # Prepare optimizer and schedule (linear warmup and decay)
+        no_decay = ['bias', 'LayerNorm.weight']
+        optimizer_grouped_parameters = [
+            {
+                'params': [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)],
+                'weight_decay': 0.01
+            },
+            {
+                'params': [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)],
+                'weight_decay': 0.0
+            }
+        ]
+
+        optimizer = optim.AdamW(
+            optimizer_grouped_parameters,
+            lr=config.lr,
+            eps=config.adam_epsilon
+        )
+
     # By default, model returns a hidden representation before softmax func.
     # Thus, we need to use CrossEntropyLoss, which combines LogSoftmax and NLLLoss.
     crit = nn.CrossEntropyLoss()
