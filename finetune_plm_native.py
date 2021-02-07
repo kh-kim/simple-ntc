@@ -105,6 +105,8 @@ def get_optimizer(model, config):
             eps=config.adam_epsilon
         )
 
+    return optimizer
+
 
 def main(config):
     # Get pretrained tokenizer.
