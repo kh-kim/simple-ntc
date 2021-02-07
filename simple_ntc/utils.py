@@ -1,3 +1,20 @@
+def read_text(fn):
+    with open(fn, 'r') as f:
+        lines = f.readlines()
+
+        labels, texts = [], []
+        for line in lines:
+            if line.strip() != '':
+                # The file should have tab delimited two columns.
+                # First column indicates label field,
+                # and second column indicates text field.
+                label, text = line.strip().split('\t')
+                labels += [label]
+                texts += [text]
+
+    return labels, texts
+
+
 def get_grad_norm(parameters, norm_type=2):
     parameters = list(filter(lambda p: p.grad is not None, parameters))
 

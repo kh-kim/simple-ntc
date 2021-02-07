@@ -78,9 +78,10 @@ class DataLoader(object):
 
 class TokenizerWrapper():
 
-    def __init__(self, tokenizer, max_length):
+    def __init__(self, tokenizer, max_length, with_text=True):
         self.tokenizer = tokenizer
         self.max_length = max_length
+        self.with_text = with_text
 
     def collate(self, samples):
         texts = [s['text'] for s in samples]
@@ -94,12 +95,15 @@ class TokenizerWrapper():
             max_length=self.max_length
         )
 
-        return {
-            'text': texts,
+        return_value = {
             'input_ids': encoding['input_ids'],
             'attention_mask': encoding['attention_mask'],
             'labels': torch.tensor(labels, dtype=torch.long),
         }
+        if self.with_text:
+            return_value['text'] = texts
+
+        return return_value
 
 
 class BertDataset(Dataset):

@@ -15,6 +15,7 @@ import torch_optimizer as custom_optim
 
 from simple_ntc.bert_trainer import BertTrainer as Trainer
 from simple_ntc.data_loader import BertDataset, TokenizerWrapper
+from simple_ntc.utils import read_text
 
 
 def define_argparser():
@@ -34,6 +35,7 @@ def define_argparser():
     p.add_argument('--warmup_ratio', type=float, default=.1)
     p.add_argument('--adam_epsilon', type=float, default=1e-8)
     p.add_argument('--use_radam', action='store_true')
+    p.add_argument('--valid_ratio', type=float, default=.2)
 
     p.add_argument('--max_length', type=int, default=100)
 
@@ -42,24 +44,7 @@ def define_argparser():
     return config
 
 
-def read_text(fn):
-    with open(fn, 'r') as f:
-        lines = f.readlines()
-
-        labels, texts = [], []
-        for line in lines:
-            if line.strip() != '':
-                # The file should have tab delimited two columns.
-                # First column indicates label field,
-                # and second column indicates text field.
-                label, text = line.strip().split('\t')
-                labels += [label]
-                texts += [text]
-
-    return labels, texts
-
-
-def get_loaders(fn, tokenizer):
+def get_loaders(fn, tokenizer, valid_ratio=.2):
     # Get list of labels and list of texts.
     labels, texts = read_text(fn)
 
@@ -79,7 +64,7 @@ def get_loaders(fn, tokenizer):
     random.shuffle(shuffled)
     texts = [e[0] for e in shuffled]
     labels = [e[1] for e in shuffled]
-    idx = int(len(texts) * .8)
+    idx = int(len(texts) * (1 - valid_ratio))
 
     # Get dataloaders using given tokenizer as collate_fn.
     train_loader = DataLoader(
@@ -97,23 +82,7 @@ def get_loaders(fn, tokenizer):
     return train_loader, valid_loader, index_to_label
 
 
-def main(config):
-    # Get pretrained tokenizer.
-    tokenizer = AutoTokenizer.from_pretrained(config.pretrained_model_name)
-    # Get dataloaders using tokenizer from untokenized corpus.
-    train_loader, valid_loader, index_to_label = get_loaders(config.train_fn, tokenizer)
-
-    print(
-        '|train| =', len(train_loader) * config.batch_size,
-        '|valid| =', len(valid_loader) * config.batch_size,
-    )
-
-    # Get pretrained model with specified softmax layer.
-    model = BertForSequenceClassification.from_pretrained(
-        config.pretrained_model_name,
-        num_labels=len(index_to_label)
-    )
-
+def get_optimizer(model, config):
     if config.use_radam:
         optimizer = custom_optim.RAdam(model.parameters(), lr=config.lr)
     else:
@@ -136,12 +105,39 @@ def main(config):
             eps=config.adam_epsilon
         )
 
-    # By default, model returns a hidden representation before softmax func.
-    # Thus, we need to use CrossEntropyLoss, which combines LogSoftmax and NLLLoss.
-    crit = nn.CrossEntropyLoss()
+
+def main(config):
+    # Get pretrained tokenizer.
+    tokenizer = AutoTokenizer.from_pretrained(config.pretrained_model_name)
+    # Get dataloaders using tokenizer from untokenized corpus.
+    train_loader, valid_loader, index_to_label = get_loaders(
+        config.train_fn,
+        tokenizer,
+        valid_ratio=config.valid_ratio
+    )
+
+    print(
+        '|train| =', len(train_loader) * config.batch_size,
+        '|valid| =', len(valid_loader) * config.batch_size,
+    )
 
     n_total_iterations = len(train_loader) * config.n_epochs
     n_warmup_steps = int(n_total_iterations * config.warmup_ratio)
+    print(
+        '#total_iters =', n_total_iterations,
+        '#warmup_iters =', n_warmup_steps,
+    )
+
+    # Get pretrained model with specified softmax layer.
+    model = BertForSequenceClassification.from_pretrained(
+        config.pretrained_model_name,
+        num_labels=len(index_to_label)
+    )
+    optimizer = get_optimizer(model, config)
+
+    # By default, model returns a hidden representation before softmax func.
+    # Thus, we need to use CrossEntropyLoss, which combines LogSoftmax and NLLLoss.
+    crit = nn.CrossEntropyLoss()
     scheduler = get_linear_schedule_with_warmup(
         optimizer,
         n_warmup_steps,
