@@ -10,8 +10,8 @@ from transformers import BertForSequenceClassification
 from transformers import Trainer
 from transformers import TrainingArguments
 
-from simple_ntc.data_loader import TextClassificationCollator
-from simple_ntc.data_loader import TextClassificationDataset
+from simple_ntc.bert_dataset import TextClassificationCollator
+from simple_ntc.bert_dataset import TextClassificationDataset
 from simple_ntc.utils import read_text
 
 
