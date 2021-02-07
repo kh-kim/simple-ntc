@@ -10,8 +10,8 @@ from transformers import BertForSequenceClassification
 from transformers import Trainer
 from transformers import TrainingArguments
 
-from simple_ntc.data_loader import TokenizerWrapper
-from simple_ntc.data_loader import BertDataset
+from simple_ntc.data_loader import TextClassificationCollator
+from simple_ntc.data_loader import TextClassificationDataset
 from simple_ntc.utils import read_text
 
 
@@ -56,8 +56,8 @@ def get_datasets(fn, valid_ratio=.2):
     labels = [e[1] for e in shuffled]
     idx = int(len(texts) * (1 - valid_ratio))
 
-    train_dataset = BertDataset(texts[:idx], labels[:idx])
-    valid_dataset = BertDataset(texts[idx:], labels[idx:])
+    train_dataset = TextClassificationDataset(texts[:idx], labels[:idx])
+    valid_dataset = TextClassificationDataset(texts[idx:], labels[idx:])
 
     return train_dataset, valid_dataset, index_to_label
 
@@ -115,7 +115,7 @@ def main(config):
     trainer = Trainer(
         model=model,
         args=training_args,
-        data_collator=TokenizerWrapper(tokenizer,
+        data_collator=TextClassificationCollator(tokenizer,
                                        config.max_length,
                                        with_text=False),
         train_dataset=train_dataset,

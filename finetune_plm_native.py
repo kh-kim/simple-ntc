@@ -14,7 +14,7 @@ from transformers import get_linear_schedule_with_warmup
 import torch_optimizer as custom_optim
 
 from simple_ntc.bert_trainer import BertTrainer as Trainer
-from simple_ntc.data_loader import BertDataset, TokenizerWrapper
+from simple_ntc.data_loader import TextClassificationDataset, TextClassificationCollator
 from simple_ntc.utils import read_text
 
 
@@ -68,15 +68,15 @@ def get_loaders(fn, tokenizer, valid_ratio=.2):
 
     # Get dataloaders using given tokenizer as collate_fn.
     train_loader = DataLoader(
-        BertDataset(texts[:idx], labels[:idx]),
+        TextClassificationDataset(texts[:idx], labels[:idx]),
         batch_size=config.batch_size,
         shuffle=True,
-        collate_fn=TokenizerWrapper(tokenizer, config.max_length).collate,
+        collate_fn=TextClassificationCollator(tokenizer, config.max_length),
     )
     valid_loader = DataLoader(
-        BertDataset(texts[idx:], labels[idx:]),
+        TextClassificationDataset(texts[idx:], labels[idx:]),
         batch_size=config.batch_size,
-        collate_fn=TokenizerWrapper(tokenizer, config.max_length).collate,
+        collate_fn=TextClassificationCollator(tokenizer, config.max_length),
     )
 
     return train_loader, valid_loader, index_to_label

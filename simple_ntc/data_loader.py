@@ -76,7 +76,7 @@ class DataLoader(object):
         self.text.build_vocab(train, max_size=max_vocab, min_freq=min_freq)
 
 
-class TokenizerWrapper():
+class TextClassificationCollator():
 
     def __init__(self, tokenizer, max_length, with_text=True):
         self.tokenizer = tokenizer
@@ -84,9 +84,6 @@ class TokenizerWrapper():
         self.with_text = with_text
 
     def __call__(self, samples):
-        return self.collate(samples)
-
-    def collate(self, samples):
         texts = [s['text'] for s in samples]
         labels = [s['label'] for s in samples]
 
@@ -109,7 +106,7 @@ class TokenizerWrapper():
         return return_value
 
 
-class BertDataset(Dataset):
+class TextClassificationDataset(Dataset):
 
     def __init__(self, texts, labels):
         self.texts = texts
