@@ -83,6 +83,9 @@ class TokenizerWrapper():
         self.max_length = max_length
         self.with_text = with_text
 
+    def __call__(self, samples):
+        return self.collate(samples)
+
     def collate(self, samples):
         texts = [s['text'] for s in samples]
         labels = [s['label'] for s in samples]
