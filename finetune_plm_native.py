@@ -14,7 +14,7 @@ from transformers import get_linear_schedule_with_warmup
 import torch_optimizer as custom_optim
 
 from simple_ntc.bert_trainer import BertTrainer as Trainer
-from simple_ntc.data_loader import TextClassificationDataset, TextClassificationCollator
+from simple_ntc.bert_dataset import TextClassificationDataset, TextClassificationCollator
 from simple_ntc.utils import read_text
 
 
