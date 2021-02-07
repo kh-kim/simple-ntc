@@ -29,10 +29,10 @@ def define_argparser():
     p.add_argument('--verbose', type=int, default=2)
 
     p.add_argument('--batch_size', type=int, default=32)
-    p.add_argument('--n_epochs', type=int, default=10)
+    p.add_argument('--n_epochs', type=int, default=5)
 
     p.add_argument('--lr', type=float, default=5e-5)
-    p.add_argument('--warmup_ratio', type=float, default=.1)
+    p.add_argument('--warmup_ratio', type=float, default=.2)
     p.add_argument('--adam_epsilon', type=float, default=1e-8)
     p.add_argument('--use_radam', action='store_true')
     p.add_argument('--valid_ratio', type=float, default=.2)
