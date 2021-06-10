@@ -1,7 +1,7 @@
 import torchtext
 version = list(map(int, torchtext.__version__.split('.')))
 if version[0] <= 0 and version[1] < 9:
-    from torchtest import data
+    from torchtext import data
 else:
     from torchtext.legacy import data
 
