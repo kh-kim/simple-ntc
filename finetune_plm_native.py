@@ -23,6 +23,10 @@ def define_argparser():
 
     p.add_argument('--model_fn', required=True)
     p.add_argument('--train_fn', required=True)
+    # Recommended model list:
+    # - beomi/kcbert-base
+    # - kykim/bert-kor-base
+    # - kykim/albert-kor-base
     p.add_argument('--pretrained_model_name', type=str, default='beomi/kcbert-base')
     p.add_argument('--use_albert', action='store_true')
     
