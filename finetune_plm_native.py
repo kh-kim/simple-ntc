@@ -6,8 +6,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from transformers import AutoTokenizer
-from transformers import BertForSequenceClassification
+from transformers import BertTokenizerFast
+from transformers import BertForSequenceClassification, AlbertForSequenceClassification
 from transformers import AdamW
 from transformers import get_linear_schedule_with_warmup
 
@@ -24,6 +24,7 @@ def define_argparser():
     p.add_argument('--model_fn', required=True)
     p.add_argument('--train_fn', required=True)
     p.add_argument('--pretrained_model_name', type=str, default='beomi/kcbert-base')
+    p.add_argument('--use_albert', action='store_true')
     
     p.add_argument('--gpu_id', type=int, default=-1)
     p.add_argument('--verbose', type=int, default=2)
@@ -110,7 +111,7 @@ def get_optimizer(model, config):
 
 def main(config):
     # Get pretrained tokenizer.
-    tokenizer = AutoTokenizer.from_pretrained(config.pretrained_model_name)
+    tokenizer = BertTokenizerFast.from_pretrained(config.pretrained_model_name)
     # Get dataloaders using tokenizer from untokenized corpus.
     train_loader, valid_loader, index_to_label = get_loaders(
         config.train_fn,
@@ -131,7 +132,8 @@ def main(config):
     )
 
     # Get pretrained model with specified softmax layer.
-    model = BertForSequenceClassification.from_pretrained(
+    model_loader = AlbertForSequenceClassification if config.use_albert else BertForSequenceClassification
+    model = model_loader.from_pretrained(
         config.pretrained_model_name,
         num_labels=len(index_to_label)
     )

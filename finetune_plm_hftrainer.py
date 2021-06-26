@@ -5,8 +5,8 @@ from sklearn.metrics import accuracy_score
 
 import torch
 
-from transformers import AutoTokenizer
-from transformers import BertForSequenceClassification
+from transformers import BertTokenizerFast
+from transformers import BertForSequenceClassification, AlbertForSequenceClassification
 from transformers import Trainer
 from transformers import TrainingArguments
 
@@ -21,6 +21,7 @@ def define_argparser():
     p.add_argument('--model_fn', required=True)
     p.add_argument('--train_fn', required=True)
     p.add_argument('--pretrained_model_name', type=str, default='beomi/kcbert-base')
+    p.add_argument('--use_albert', action='store_true')
 
     p.add_argument('--valid_ratio', type=float, default=.2)
     p.add_argument('--batch_size_per_device', type=int, default=32)
@@ -66,7 +67,7 @@ def get_datasets(fn, valid_ratio=.2):
 
 def main(config):
     # Get pretrained tokenizer.
-    tokenizer = AutoTokenizer.from_pretrained(config.pretrained_model_name)
+    tokenizer = BertTokenizerFast.from_pretrained(config.pretrained_model_name)
     # Get datasets and index to label map.
     train_dataset, valid_dataset, index_to_label = get_datasets(
         config.train_fn,
@@ -87,7 +88,8 @@ def main(config):
     )
 
     # Get pretrained model with specified softmax layer.
-    model = BertForSequenceClassification.from_pretrained(
+    model_loader = AlbertForSequenceClassification if config.use_albert else BertForSequenceClassification
+    model = model_loader.from_pretrained(
         config.pretrained_model_name,
         num_labels=len(index_to_label)
     )
