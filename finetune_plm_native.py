@@ -23,6 +23,11 @@ def define_argparser():
 
     p.add_argument('--model_fn', required=True)
     p.add_argument('--train_fn', required=True)
+    # Recommended model list:
+    # - kykim/bert-kor-base
+    # - kykim/albert-kor-base
+    # - beomi/kcbert-base
+    # - beomi/kcbert-large
     p.add_argument('--pretrained_model_name', type=str, default='beomi/kcbert-base')
     p.add_argument('--use_albert', action='store_true')
     
@@ -35,6 +40,8 @@ def define_argparser():
     p.add_argument('--lr', type=float, default=5e-5)
     p.add_argument('--warmup_ratio', type=float, default=.2)
     p.add_argument('--adam_epsilon', type=float, default=1e-8)
+    # If you want to use RAdam, I recommend to use LR=1e-4.
+    # Also, you can set warmup_ratio=0.
     p.add_argument('--use_radam', action='store_true')
     p.add_argument('--valid_ratio', type=float, default=.2)
 
