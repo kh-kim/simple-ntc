@@ -40,7 +40,7 @@ class MyEngine(Engine):
         engine.model.train() # Because we assign model as class variable, we can easily access to it.
         engine.optimizer.zero_grad()
 
-        x, y = mini_batch.text, mini_batch.label
+        x, y = mini_batch['input_ids'], mini_batch['labels']
         x, y = x.to(engine.device), y.to(engine.device)
 
         x = x[:, :engine.config.max_length]
@@ -76,7 +76,7 @@ class MyEngine(Engine):
         engine.model.eval()
 
         with torch.no_grad():
-            x, y = mini_batch.text, mini_batch.label
+            x, y = mini_batch['input_ids'], mini_batch['labels']
             x, y = x.to(engine.device), y.to(engine.device)
 
             x = x[:, :engine.config.max_length]

@@ -1,11 +1,18 @@
 import argparse
+import random
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.utils.data import DataLoader
 
 from simple_ntc.trainer import Trainer
-from simple_ntc.data_loader import DataLoader
+from simple_ntc.dataset import (
+    VocabBuilder,
+    TextClassificationDataset,
+    TextClassificationCollator,
+)
+from simple_ntc.utils import read_text
 
 from simple_ntc.models.rnn import RNNClassifier
 from simple_ntc.models.cnn import CNNClassifier
@@ -19,6 +26,7 @@ def define_argparser():
 
     p.add_argument('--model_fn', required=True)
     p.add_argument('--train_fn', required=True)
+    p.add_argument('--valid_ratio', type=float, default=.2)
     
     p.add_argument('--gpu_id', type=int, default=-1)
     p.add_argument('--verbose', type=int, default=2)
@@ -48,22 +56,59 @@ def define_argparser():
     return config
 
 
-def main(config):
-    loaders = DataLoader(
-        train_fn=config.train_fn,
+def get_loaders(fn, valid_ratio=.2):
+    # Get list of labels and list of texts.
+    labels, texts = read_text(fn)
+
+    # Generate label to index map.
+    unique_labels = list(set(labels))
+    label_to_index = {}
+    index_to_label = {}
+    for i, label in enumerate(unique_labels):
+        label_to_index[label] = i
+        index_to_label[i] = label
+
+    # Shuffle before split into train and validation set.
+    shuffled = list(zip(texts, labels))
+    random.shuffle(shuffled)
+    texts = [e[0] for e in shuffled]
+    labels = [e[1] for e in shuffled]
+    idx = int(len(texts) * (1 - valid_ratio))
+
+    vocab = VocabBuilder(texts[:idx]).get_vocab(
+        min_freq=config.min_vocab_freq
+    )
+
+    # Get dataloaders using given tokenizer as collate_fn.
+    train_loader = DataLoader(
+        TextClassificationDataset(texts[:idx], labels[:idx]),
         batch_size=config.batch_size,
-        min_freq=config.min_vocab_freq,
-        max_vocab=config.max_vocab_size,
-        device=config.gpu_id
+        shuffle=True,
+        collate_fn=TextClassificationCollator(vocab, label_to_index, config.max_length),
+    )
+    valid_loader = DataLoader(
+        TextClassificationDataset(texts[idx:], labels[idx:]),
+        batch_size=config.batch_size,
+        collate_fn=TextClassificationCollator(vocab, label_to_index, config.max_length),
+    )
+
+    return train_loader, valid_loader, vocab, index_to_label
+
+
+def main(config):
+    # Get dataloaders, vocabulary and index_to_label map.
+    train_loader, valid_loader, vocab, index_to_label = get_loaders(
+        config.train_fn,
+        valid_ratio=config.valid_ratio
     )
 
     print(
-        '|train| =', len(loaders.train_loader.dataset),
-        '|valid| =', len(loaders.valid_loader.dataset),
+        '|train| =', len(train_loader) * config.batch_size,
+        '|valid| =', len(valid_loader) * config.batch_size,
     )
-    
-    vocab_size = len(loaders.text.vocab)
-    n_classes = len(loaders.label.vocab)
+
+    vocab_size = len(vocab)
+    n_classes = len(index_to_label)
     print('|vocab| =', vocab_size, '|classes| =', n_classes)
 
     if config.rnn is False and config.cnn is False:
@@ -92,8 +137,8 @@ def main(config):
             model,
             crit,
             optimizer,
-            loaders.train_loader,
-            loaders.valid_loader
+            train_loader,
+            valid_loader
         )
     if config.cnn:
         # Declare model and loss.
@@ -119,16 +164,16 @@ def main(config):
             model,
             crit,
             optimizer,
-            loaders.train_loader,
-            loaders.valid_loader
+            train_loader,
+            valid_loader
         )
 
     torch.save({
         'rnn': rnn_model.state_dict() if config.rnn else None,
         'cnn': cnn_model.state_dict() if config.cnn else None,
         'config': config,
-        'vocab': loaders.text.vocab,
-        'classes': loaders.label.vocab,
+        'vocab': vocab,
+        'classes': index_to_label,
     }, config.model_fn)
 
 

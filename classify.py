@@ -3,11 +3,7 @@ import argparse
 
 import torch
 import torch.nn as nn
-version = list(map(int, torchtext.__version__.split('.')))
-if version[0] <= 0 and version[1] < 9:
-    from torchtext import data
-else:
-    from torchtext.legacy import data
+from torch.nn.utils.rnn import pad_sequence
 
 from simple_ntc.models.rnn import RNNClassifier
 from simple_ntc.models.cnn import CNNClassifier
@@ -46,25 +42,6 @@ def read_text(max_length=256):
     return lines
 
 
-def define_field():
-    '''
-    To avoid use DataLoader class, just declare dummy fields. 
-    With those fields, we can retore mapping table between words and indice.
-    '''
-    return (
-        data.Field(
-            use_vocab=True,
-            batch_first=True,
-            include_lengths=False,
-        ),
-        data.Field(
-            sequential=False,
-            use_vocab=True,
-            unk_token=None,
-        )
-    )
-
-
 def main(config):
     saved_data = torch.load(
         config.model_fn,
@@ -75,14 +52,10 @@ def main(config):
     rnn_best = saved_data['rnn']
     cnn_best = saved_data['cnn']
     vocab = saved_data['vocab']
-    classes = saved_data['classes']
+    index_to_label = saved_data['classes']
 
     vocab_size = len(vocab)
-    n_classes = len(classes)
-
-    text_field, label_field = define_field()
-    text_field.vocab = vocab
-    label_field.vocab = classes
+    n_classes = len(index_to_label)
 
     lines = read_text(max_length=config.max_length)
 
@@ -124,11 +97,15 @@ def main(config):
 
             y_hat = []
             for idx in range(0, len(lines), config.batch_size):                
-                # Converts string to list of index.
-                x = text_field.numericalize(
-                    text_field.pad(lines[idx:idx + config.batch_size]),
-                    device='cuda:%d' % config.gpu_id if config.gpu_id >= 0 else 'cpu',
-                )
+                # Converts strings to padded tensor of index.
+                x = pad_sequence(
+                        [torch.tensor(
+                            vocab(s),
+                            dtype=torch.long
+                         ) for s in lines[idx:idx + config.batch_size]],
+                        batch_first=True,
+                        padding_value=0,
+                    ).cuda(config.gpu_id)
 
                 y_hat += [model(x).cpu()]
             # Concatenate the mini-batch wise result
@@ -148,7 +125,7 @@ def main(config):
 
         for i in range(len(lines)):
             sys.stdout.write('%s\t%s\n' % (
-                ' '.join([classes.itos[indice[i][j]] for j in range(config.top_k)]), 
+                ' '.join([index_to_label[int(indice[i][j])] for j in range(config.top_k)]), 
                 ' '.join(lines[i])
             ))
 
