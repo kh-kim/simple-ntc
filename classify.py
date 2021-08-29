@@ -94,6 +94,7 @@ def main(config):
                 model.cuda(config.gpu_id)
             # Don't forget turn-on evaluation mode.
             model.eval()
+            device = next(model.parameters()).device
 
             y_hat = []
             for idx in range(0, len(lines), config.batch_size):                
@@ -105,7 +106,7 @@ def main(config):
                          ) for s in lines[idx:idx + config.batch_size]],
                         batch_first=True,
                         padding_value=0,
-                    ).cuda(config.gpu_id)
+                    ).to(device)
 
                 y_hat += [model(x).cpu()]
             # Concatenate the mini-batch wise result
