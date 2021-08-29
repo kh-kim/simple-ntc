@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 
 from simple_ntc.trainer import Trainer
 from simple_ntc.dataset import (
-    VocabBuilder,
+    get_vocab,
     TextClassificationDataset,
     TextClassificationCollator,
 )
@@ -71,12 +71,13 @@ def get_loaders(fn, valid_ratio=.2):
     # Shuffle before split into train and validation set.
     shuffled = list(zip(texts, labels))
     random.shuffle(shuffled)
-    texts = [e[0] for e in shuffled]
+    texts = [e[0].split() for e in shuffled]
     labels = [e[1] for e in shuffled]
     idx = int(len(texts) * (1 - valid_ratio))
 
-    vocab = VocabBuilder(texts[:idx]).get_vocab(
-        min_freq=config.min_vocab_freq
+    vocab = get_vocab(
+        texts[:idx],
+        min_freq=config.min_vocab_freq,
     )
 
     # Get dataloaders using given tokenizer as collate_fn.

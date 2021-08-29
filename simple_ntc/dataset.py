@@ -5,21 +5,16 @@ from torch.utils.data import Dataset
 from torchtext.vocab import build_vocab_from_iterator
 
 
-class VocabBuilder():
+def get_vocab(texts, min_freq=1):
+    vocab = build_vocab_from_iterator(
+        texts,
+        min_freq=min_freq,
+        specials=['<PAD>', '<UNK>'],
+        special_first=True
+    )
+    vocab.set_default_index(1)
 
-    def __init__(self, texts):
-        self.texts = [s.split() for s in texts]
-
-    def get_vocab(self, min_freq=1):
-        vocab = build_vocab_from_iterator(
-            self.texts,
-            min_freq=min_freq,
-            specials=['<PAD>', '<UNK>'],
-            special_first=True
-        )
-        vocab.set_default_index(1)
-
-        return vocab
+    return vocab
 
 
 class TextClassificationDataset(Dataset):
