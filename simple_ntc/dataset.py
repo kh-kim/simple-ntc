@@ -27,7 +27,7 @@ class TextClassificationDataset(Dataset):
         return len(self.texts)
     
     def __getitem__(self, item):
-        text = str(self.texts[item])
+        text = self.texts[item]
         label = self.labels[item]
 
         return {
@@ -44,7 +44,7 @@ class TextClassificationCollator():
         self.with_text = with_text
 
     def __call__(self, samples):
-        texts = [s['text'].split() for s in samples]
+        texts = [s['text'] for s in samples]
         encoding = [torch.tensor(self.vocab(s), dtype=torch.long) for s in texts]
         labels = [self.label_to_idx.get(s['label']) for s in samples]
 
@@ -58,5 +58,9 @@ class TextClassificationCollator():
         }
         if self.with_text:
             return_value['text'] = texts
+
+        # print(return_value['input_ids'].shape)
+        # print(return_value['input_ids'])
+        # print(return_value['labels'])
 
         return return_value
