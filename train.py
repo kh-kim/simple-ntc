@@ -85,12 +85,12 @@ def get_loaders(fn, valid_ratio=.2):
         TextClassificationDataset(texts[:idx], labels[:idx]),
         batch_size=config.batch_size,
         shuffle=True,
-        collate_fn=TextClassificationCollator(vocab, label_to_index, config.max_length),
+        collate_fn=TextClassificationCollator(vocab, label_to_index, with_text=False),
     )
     valid_loader = DataLoader(
         TextClassificationDataset(texts[idx:], labels[idx:]),
         batch_size=config.batch_size,
-        collate_fn=TextClassificationCollator(vocab, label_to_index, config.max_length),
+        collate_fn=TextClassificationCollator(vocab, label_to_index, with_text=False),
     )
 
     return train_loader, valid_loader, vocab, index_to_label
