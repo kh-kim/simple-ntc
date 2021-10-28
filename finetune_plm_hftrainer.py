@@ -107,6 +107,7 @@ def main(config):
         weight_decay=0.01,
         fp16=True,
         evaluation_strategy='epoch',
+        save_strategy='epoch',
         logging_steps=n_total_iterations // 100,
         save_steps=n_total_iterations // config.n_epochs,
         load_best_model_at_end=True,
