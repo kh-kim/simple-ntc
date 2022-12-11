@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score
 import torch
 
 from transformers import BertTokenizerFast
-from transformers import BertForSequenceClassification, AlbertForSequenceClassification
+from transformers import BertForSequenceClassification, AlbertForSequenceClassification, RobertaForSequenceClassification
 from transformers import Trainer
 from transformers import TrainingArguments
 
@@ -27,6 +27,7 @@ def define_argparser():
     # - beomi/kcbert-large
     p.add_argument('--pretrained_model_name', type=str, default='beomi/kcbert-base')
     p.add_argument('--use_albert', action='store_true')
+    p.add_argument('--use_roberta', action='store_true')
 
     p.add_argument('--valid_ratio', type=float, default=.2)
     p.add_argument('--batch_size_per_device', type=int, default=32)
@@ -92,7 +93,14 @@ def main(config):
     )
 
     # Get pretrained model with specified softmax layer.
-    model_loader = AlbertForSequenceClassification if config.use_albert else BertForSequenceClassification
+    assert not (config.use_albert and config.use_roberta), 'Only one of use_albert and use_roberta can be True.'
+    if config.use_albert:
+        model_loader = AlbertForSequenceClassification
+    elif config.use_roberta:
+        model_loader = RobertaForSequenceClassification
+    else:
+        model_loader = BertForSequenceClassification
+
     model = model_loader.from_pretrained(
         config.pretrained_model_name,
         num_labels=len(index_to_label)
