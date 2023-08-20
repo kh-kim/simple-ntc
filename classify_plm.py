@@ -4,7 +4,6 @@ import argparse
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchtext import data
 
 from transformers import BertTokenizerFast
 from transformers import BertForSequenceClassification, AlbertForSequenceClassification

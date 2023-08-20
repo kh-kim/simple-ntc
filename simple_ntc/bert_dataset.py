@@ -10,8 +10,10 @@ class TextClassificationCollator():
         self.with_text = with_text
 
     def __call__(self, samples):
-        texts = [s['text'] for s in samples]
-        labels = [s['label'] for s in samples]
+        texts, labels = [], []
+        for text, label in samples:
+            texts += [text]
+            labels += [label]
 
         encoding = self.tokenizer(
             texts,
@@ -45,7 +47,4 @@ class TextClassificationDataset(Dataset):
         text = str(self.texts[item])
         label = self.labels[item]
 
-        return {
-            'text': text,
-            'label': label,
-        }
+        return text, label
